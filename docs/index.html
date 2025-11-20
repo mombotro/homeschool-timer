@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Homeschool Time Tracker - Documentation</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+       max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
+h1 { color: #4CAF50; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+h2 { color: #2196F3; margin-top: 30px; }
+h3 { color: #666; }
+code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+a { color: #2196F3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.button { display: inline-block; background: #4CAF50; color: white; padding: 12px 24px;
+          border-radius: 5px; margin: 10px 10px 10px 0; font-weight: bold; }
+.button:hover { background: #45a049; text-decoration: none; }
+ul { margin: 10px 0; }
+li { margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<h1>📚 Homeschool Time Tracker</h1>
+
+<p>A simple, local-first time tracking app for homeschool families. Track time spent on each student and subject using plain markdown files and hashtags.</p>
+
+<a href="../index.html" class="button">🚀 Launch Timer App</a>
+<a href="https://github.com/mombotro/homeschool-timer" class="button" style="background: #333;">💾 View on GitHub</a>
+
+<h2>Features</h2>
+
+<ul>
+<li>⏱️ <strong>Inline Timer</strong>: Start/pause/stop timer with automatic time recording</li>
+<li>🏷️ <strong>Smart Hashtags</strong>: Autocomplete for students (#alice, #bob) and subjects (#math, #core/reading)</li>
+<li>📝 <strong>Markdown-Based</strong>: All data stored as plain <code>.md</code> files (works with Obsidian!)</li>
+<li>⚙️ <strong>Easy Setup</strong>: Edit students and subjects in the built-in Settings tab</li>
+<li>📊 <strong>CSV Export</strong>: Export all logged time to CSV with the included Python script</li>
+<li>🔒 <strong>100% Local</strong>: No server, no account, no internet required</li>
+</ul>
+
+<h2>Quick Start</h2>
+
+<ol>
+<li><strong>Launch the app</strong> by clicking the button above</li>
+<li><strong>Click "Select Project Folder"</strong> and choose a folder on your computer</li>
+<li><strong>Start tracking!</strong> Type <code>#</code> to see autocomplete suggestions</li>
+</ol>
+
+<h2>Usage</h2>
+
+<h3>Inline Timer Workflow</h3>
+
+<ol>
+<li>Click "New Timer Entry" or type: <code>- [Timer] #student #subject</code></li>
+<li>Add notes on the next line (optional)</li>
+<li>Click "Start Timer"</li>
+<li>Click "Stop Timer" when done - it replaces <code>[Timer]</code> with actual times</li>
+</ol>
+
+<p><strong>Example:</strong></p>
+<pre><code>- [Timer] #alice #core/math
+  Working on multiplication tables</code></pre>
+
+<p>Becomes:</p>
+<pre><code>- 09:15 – 09:32 → #alice #core/math
+  Working on multiplication tables</code></pre>
+
+<h3>Hashtag Autocomplete</h3>
+
+<ul>
+<li>Type <code>#c</code> → see all tags starting with "c"</li>
+<li>Type <code>#core/</code> → see nested tags like #core/math, #core/reading</li>
+<li>Use ↑/↓ arrows to navigate, Enter to select</li>
+</ul>
+
+<h3>Customize Students & Subjects</h3>
+
+<ol>
+<li>Go to <strong>Settings</strong> tab</li>
+<li>Edit students and subjects</li>
+<li>Format: <code>#tagname - Description</code></li>
+<li>Click Save to update autocomplete</li>
+</ol>
+
+<h3>Export to CSV</h3>
+
+<p>Download the <code>export-times.py</code> script from GitHub and run:</p>
+
+<pre><code>python export-times.py</code></pre>
+
+<p>Creates <code>homeschool-time-report.csv</code> with all logged time.</p>
+
+<h2>File Structure</h2>
+
+<pre><code>homeschool-timer/
+├── index.html           # Main app
+├── export-times.py      # CSV export script
+├── Students/
+│   └── students.md      # Student hashtag definitions
+├── Subjects/
+│   └── subjects.md      # Subject hashtag definitions
+├── Logbook/
+│   ├── 2025-11-19.md   # Daily log files
+│   └── 2025-11-20.md
+└── Templates/
+    └── Daily Log.md     # Template for new logs</code></pre>
+
+<h2>Why This Approach?</h2>
+
+<ul>
+<li><strong>Future-proof</strong>: Plain text files work everywhere</li>
+<li><strong>Flexible</strong>: Use with any text editor or Obsidian</li>
+<li><strong>Simple</strong>: No complicated setup or learning curve</li>
+<li><strong>Portable</strong>: Works offline, no vendor lock-in</li>
+<li><strong>Privacy</strong>: All data stays on your computer</li>
+</ul>
+
+<h2>Browser Compatibility</h2>
+
+<p>Requires a browser with File System Access API support:</p>
+<ul>
+<li>✅ Chrome/Edge (recommended)</li>
+<li>❌ Firefox (not supported yet)</li>
+<li>❌ Safari (not supported yet)</li>
+</ul>
+
+<h2>Download for Offline Use</h2>
+
+<p>You can download the repository and run it entirely offline:</p>
+
+<ol>
+<li>Visit the <a href="https://github.com/mombotro/homeschool-timer">GitHub repository</a></li>
+<li>Click "Code" → "Download ZIP"</li>
+<li>Extract and open <code>index.html</code> in Chrome/Edge</li>
+</ol>
+
+<hr style="margin: 40px 0;">
+
+<p style="text-align: center; color: #999;">
+Made with ❤️ for homeschool families |
+<a href="https://github.com/mombotro/homeschool-timer">Open Source</a>
+</p>
+
+</body>
+</html>

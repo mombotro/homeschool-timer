@@ -2,8 +2,6 @@
 
 A simple, local-first time tracking app for homeschool families. Track time spent on each student and subject using plain markdown files and hashtags.
 
-**🚀 [Launch Timer App](http://azirona.com/homeschool-timer/)** | **📖 [Full Documentation](http://azirona.com/homeschool-timer/docs/)**
-
 ## Features
 
 - ⏱️ **Inline Timer**: Start/pause/stop timer with automatic time recording
@@ -15,11 +13,10 @@ A simple, local-first time tracking app for homeschool families. Track time spen
 
 ## Quick Start
 
-1. **Visit [azirona.com/homeschool-timer](http://azirona.com/homeschool-timer/)** or download the files
-2. **Click "Select Project Folder"** and choose a folder on your computer
-3. **Start tracking!** Type `#` to see autocomplete suggestions
-
-For offline use: Download the repository and open `index.html` in Chrome or Edge
+1. **Download the files** or clone this repository
+2. **Open `timer.html`** in Chrome or Edge
+3. **Click "Select Project Folder"** and choose the `homeschool-timer` folder
+4. **Start tracking!** Type `#` to see autocomplete suggestions
 
 ## Usage
 
@@ -69,9 +66,8 @@ Opens `homeschool-time-report.csv` with all logged time.
 
 ```
 homeschool-timer/
-├── index.html           # Main app
+├── timer.html           # Main app (open this!)
 ├── export-times.py      # CSV export script
-├── docs/                # Documentation
 ├── Students/
 │   └── students.md      # Student hashtag definitions
 ├── Subjects/
