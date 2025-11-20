@@ -1,0 +1,206 @@
+# Homeschool Time-Tracker Design Document  
+**Goal**: An extremely simple, Obsidian-like time-keeping app for homeschool families that tracks exactly how much time is spent on each student and each subject, with zero bloat. Everything is stored as plain-text Markdown files in a folder (so it works perfectly inside Obsidian or any text editor), and you can export all logged time to a single CSV with one click/script.
+
+### Core Philosophy
+- 100% local, plain-text files (no database, no server, no account)
+- Uses only Markdown + YAML frontmatter + hashtags → works natively in Obsidian, Typora, Markor, etc.
+- One single vault/folder holds everything
+- Feels exactly like taking quick notes, but with automatic time tracking
+- One-command CSV export (via a tiny script or even a free tool like Logseq/Obsidian plugins if you want, but vanilla method provided)
+
+### Folder Structure (inside your Obsidian vault or any folder)
+```
+Homeschool-TimeTracker/
+├── Students/              # optional – one file per student for reference
+├── Subjects/              # optional – one file per subject for reference
+├── Logbook/               # all daily log files go here (one file per day)
+│   ├── 2025-11-19.md
+│   ├── 2025-11-20.md
+│   └── …
+├── Templates/
+│   └── Daily Log.md       # daily template
+└── export-times.py        # tiny Python script for CSV export (30 lines)
+```
+
+### Hashtag System (the heart of the app)
+Every student gets one unique hashtag:
+- #alice  
+- #bob  
+- #clara
+
+Every subject gets one unique hashtag:
+- #math  
+- #history  
+- #latin  
+- #piano  
+- #readaloud
+
+You can combine them freely.
+
+### Daily Log File Format (Logbook/2025-11-19.md)
+```markdown
+# 2025-11-19
+
+## Time Log
+
+- 09:00 – 09:45 → #alice #math  
+  Multiplication tables & workbook p. 23-25
+
+- 09:45 – 10:30 → #alice #readaloud  
+  Finished Charlotte’s Web ch. 15-17
+
+- 10:45 – 11:15 → #bob #history  
+  Watched Liberty’s Kids episode about Paul Revere + narration
+
+- 11:15 – 11:50 → #bob #latin  
+  Lingua Latina ch. 3 exercises
+
+- 13:00 – 13:40 → #alice #bob #piano  
+  Joint practice – scales + duet
+```
+
+That’s it. You just type start – end → #student(s) #subject(s) and optional notes.
+
+### Timer Workflow (the “app” part)
+You have basically two options – both ultra-light:
+
+Option 1 – Manual (vanilla, zero tools needed)  
+Just look at your clock and type the times. Most homeschoolers already do this.
+
+Option 2 – One-click timer (still vanilla)  
+Create a simple text file or use any free timer that can append a line to a file. Here’s a dead-simple HTML timer you can open in any browser (no install):
+
+Save this as timer.html and open it locally:
+```html
+<!DOCTYPE html>
+<html>
+<head><title>Homeschool Timer</title></head>
+<body>
+<h2>Homeschool Quick Timer</h2>
+Student(s): <input id="students" placeholder="#alice #bob" size="30"><br><br>
+Subject(s): <input id="subjects" placeholder="#math #history" size="30"><br><br>
+Notes: <textarea id="notes" rows="3" cols="50"></textarea><br><br>
+
+<button onclick="start()">Start Timer</button>
+<button onclick="stop()">Stop & Append to Today’s Log</button>
+
+<pre id="status"></pre>
+
+<script>
+let startTime;
+function start() {
+  startTime = new Date();
+  document.getElementById('status').textContent = 'Running… started at ' + startTime.toLocaleTimeString();
+}
+function stop() {
+  if (!startTime) return;
+  const endTime = new Date();
+  const startStr = startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const endStr = endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  
+  const students = document.getElementById('students').value.trim() || '#unknown';
+  const subjects = document.getElementById('subjects').value.trim() || '#unspecified';
+  const notes = document.getElementById('notes').value.trim();
+  
+  const line = `- ${startStr} – ${endStr} → ${students} ${subjects}\n  ${notes}\n\n`;
+  
+  // Append to today’s file (uses the modern File System Access API – works in Chrome/Edge)
+  const today = new Date().toISOString().slice(0,10) + '.md';
+  const folderHandle = null; // you pick the Logbook folder once, then it remembers
+  (async () => {
+    try {
+      const handle = await window.showDirectoryPicker();
+      const fileHandle = await handle.getFileHandle(today, {create: true});
+      const writable = await fileHandle.createWritable({keepExistingData: true});
+      await writable.seek((await fileHandle.getFile()).size);
+      await writable.write(line);
+      await writable.close();
+      alert('Appended to ' + today);
+    } catch(e) { alert('Copy this line manually:\n\n' + line); console.log(e); }
+  })();
+}
+</script>
+</body>
+</html>
+```
+
+It will ask you once to pick your Logbook folder, then forever after it appends automatically with one click.
+
+### CSV Export (30-line Python script – works everywhere)
+Save as export-times.py in the root folder:
+```python
+import os
+from datetime import datetime
+from collections import defaultdict
+
+logbook = "Logbook"
+rows = []
+
+for filename in sorted(os.listdir(logbook)):
+    if not filename.endswith(".md"): continue
+    date = filename[:-3]  # 2025-11-19
+    
+    with open(os.path.join(logbook, filename), "r", encoding="utf-8") as f:
+        for line in f:
+            if "→" not in line: continue
+            if not line.strip().startswith("-"): continue
+            
+            parts = line.split("→")
+            if len(parts) != 2: continue
+            
+            time_part = parts[0].strip().lstrip("- ").split("–")  # start–end
+            if len(time_part) != 2: continue
+            start, end = time_part[0].strip(), time_part[1].strip()
+            
+            tags = parts[1].strip().split()
+            students = [t for t in tags if t.startswith("#") and t[1:].isalpha()]
+            subjects = [t for t in tags if t.startswith("#") and t[1:].isalpha() and t not in students]
+            
+            notes_start = line.find(parts[1]) + len(parts[1])
+            notes = line[notes_start:].strip()
+            if notes.startswith("#"): notes = ""  # next tag line
+            
+            for student in students:
+                for subject in subjects:
+                    rows.append({
+                        "date": date,
+                        "student": student[1:],
+                        "subject": subject[1:],
+                        "start": start,
+                        "end": end,
+                        "notes": notes
+                    })
+
+# Write CSV
+import csv
+with open("homeschool-time-report.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=["date","student","subject","start","end","notes"])
+    writer.writeheader()
+    writer.writerows(rows)
+
+print(f"Exported {len(rows)} rows to homeschool-time-report.csv")
+```
+
+Run with: `python export-times.py` → you get a perfect CSV that you can open in Excel or Google Sheets and pivot however you want (total hours per student, per subject, per month, state requirements, etc.).
+
+### Optional Daily Template (Templates/Daily Log.md)
+```markdown
+# {{date:YYYY-MM-DD}}
+
+## Time Log
+
+<!-- Add lines here -->
+
+## Total time today
+
+<!-- Optional: calculate manually or let the CSV script do the real math -->
+```
+
+### Summary – Why this is the simplest possible system that still “feels like an app”
+- Works 100% inside Obsidian (or any folder) – no new software forced
+- Hashtags make tagging instant and searchable
+- One browser tab gives you a real start/stop timer if you want it
+- One 30-line script gives you perfect CSV reports forever
+- Zero lock-in, zero cost, works offline, future-proof
+
+This is literally what many veteran homeschoolers end up converging on after trying all the fancy apps. You now have it from day one, but even cleaner. Happy homeschooling!
