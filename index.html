@@ -162,15 +162,33 @@ h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
       <div class="settings-editors">
         <div class="editor-section">
           <h3>👥 Students</h3>
+          <select id="studentsFileSelect" onchange="loadSelectedStudentFile()" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ddd;">
+            <option value="students.md">students.md</option>
+          </select>
+          <button onclick="createNewStudentFile()" class="secondary" style="margin-bottom: 10px;">➕ New File</button>
           <textarea id="studentsEditor" placeholder="Loading..."></textarea>
-          <button onclick="saveStudents()" style="margin-top: 10px;">💾 Save Students</button>
+          <button onclick="saveStudents()" style="margin-top: 10px;">💾 Save</button>
+          <button onclick="deleteStudentFile()" class="stop" style="margin-top: 10px;">🗑️ Delete File</button>
         </div>
 
         <div class="editor-section">
           <h3>📚 Subjects</h3>
+          <select id="subjectsFileSelect" onchange="loadSelectedSubjectFile()" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ddd;">
+            <option value="subjects.md">subjects.md</option>
+          </select>
+          <button onclick="createNewSubjectFile()" class="secondary" style="margin-bottom: 10px;">➕ New File</button>
           <textarea id="subjectsEditor" placeholder="Loading..."></textarea>
-          <button onclick="saveSubjects()" style="margin-top: 10px;">💾 Save Subjects</button>
+          <button onclick="saveSubjects()" style="margin-top: 10px;">💾 Save</button>
+          <button onclick="deleteSubjectFile()" class="stop" style="margin-top: 10px;">🗑️ Delete File</button>
         </div>
+      </div>
+
+      <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 6px;">
+        <h3 style="margin-top: 0;">📊 Export Data</h3>
+        <button onclick="exportCSV()" class="secondary">⬇️ Export CSV Report</button>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">
+          Exports all logged time with totals per student, per subject, and per top-level subject category.
+        </p>
       </div>
     </div>
   </div>
@@ -187,6 +205,10 @@ let currentFileHandle = null;
 let currentFileName = null;
 let studentsFileHandle = null;
 let subjectsFileHandle = null;
+let currentStudentFile = 'students.md';
+let currentSubjectFile = 'subjects.md';
+let studentFiles = {};
+let subjectFiles = {};
 
 // Timer state
 let timerStartTime = null;
@@ -358,28 +380,198 @@ async function loadSettingsEditors() {
   if (storageMode === 'desktop' && !folderHandle) return;
 
   if (storageMode === 'desktop') {
+    // Load all student files
+    studentFiles = {};
     try {
       const studentsFolder = await folderHandle.getDirectoryHandle('Students');
-      studentsFileHandle = await studentsFolder.getFileHandle('students.md');
-      const studentsFile = await studentsFileHandle.getFile();
-      document.getElementById('studentsEditor').value = await studentsFile.text();
+      for await (const entry of studentsFolder.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+          const fileHandle = await studentsFolder.getFileHandle(entry.name);
+          const file = await fileHandle.getFile();
+          studentFiles[entry.name] = {
+            handle: fileHandle,
+            content: await file.text()
+          };
+        }
+      }
     } catch(e) {
-      console.log('Students file not found:', e);
-      document.getElementById('studentsEditor').value = '# Students\n\n#student - Description\n';
+      console.log('Students folder not found:', e);
     }
 
+    // Populate students dropdown
+    const studentsSelect = document.getElementById('studentsFileSelect');
+    studentsSelect.innerHTML = '';
+    Object.keys(studentFiles).sort().forEach(filename => {
+      const option = document.createElement('option');
+      option.value = filename;
+      option.textContent = filename;
+      studentsSelect.appendChild(option);
+    });
+
+    // Load first student file
+    if (Object.keys(studentFiles).length > 0) {
+      currentStudentFile = Object.keys(studentFiles)[0];
+      studentsSelect.value = currentStudentFile;
+      document.getElementById('studentsEditor').value = studentFiles[currentStudentFile].content;
+      studentsFileHandle = studentFiles[currentStudentFile].handle;
+    }
+
+    // Load all subject files
+    subjectFiles = {};
     try {
       const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects');
-      subjectsFileHandle = await subjectsFolder.getFileHandle('subjects.md');
-      const subjectsFile = await subjectsFileHandle.getFile();
-      document.getElementById('subjectsEditor').value = await subjectsFile.text();
+      for await (const entry of subjectsFolder.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+          const fileHandle = await subjectsFolder.getFileHandle(entry.name);
+          const file = await fileHandle.getFile();
+          subjectFiles[entry.name] = {
+            handle: fileHandle,
+            content: await file.text()
+          };
+        }
+      }
     } catch(e) {
-      console.log('Subjects file not found:', e);
-      document.getElementById('subjectsEditor').value = '# Subjects\n\n#subject - Description\n';
+      console.log('Subjects folder not found:', e);
+    }
+
+    // Populate subjects dropdown
+    const subjectsSelect = document.getElementById('subjectsFileSelect');
+    subjectsSelect.innerHTML = '';
+    Object.keys(subjectFiles).sort().forEach(filename => {
+      const option = document.createElement('option');
+      option.value = filename;
+      option.textContent = filename;
+      subjectsSelect.appendChild(option);
+    });
+
+    // Load first subject file
+    if (Object.keys(subjectFiles).length > 0) {
+      currentSubjectFile = Object.keys(subjectFiles)[0];
+      subjectsSelect.value = currentSubjectFile;
+      document.getElementById('subjectsEditor').value = subjectFiles[currentSubjectFile].content;
+      subjectsFileHandle = subjectFiles[currentSubjectFile].handle;
     }
   } else {
     document.getElementById('studentsEditor').value = mobileData.students;
     document.getElementById('subjectsEditor').value = mobileData.subjects;
+  }
+}
+
+async function loadSelectedStudentFile() {
+  const select = document.getElementById('studentsFileSelect');
+  currentStudentFile = select.value;
+
+  if (storageMode === 'desktop') {
+    if (studentFiles[currentStudentFile]) {
+      document.getElementById('studentsEditor').value = studentFiles[currentStudentFile].content;
+      studentsFileHandle = studentFiles[currentStudentFile].handle;
+    }
+  }
+}
+
+async function loadSelectedSubjectFile() {
+  const select = document.getElementById('subjectsFileSelect');
+  currentSubjectFile = select.value;
+
+  if (storageMode === 'desktop') {
+    if (subjectFiles[currentSubjectFile]) {
+      document.getElementById('subjectsEditor').value = subjectFiles[currentSubjectFile].content;
+      subjectsFileHandle = subjectFiles[currentSubjectFile].handle;
+    }
+  }
+}
+
+async function createNewStudentFile() {
+  const filename = prompt('Enter new student file name (e.g., students-team1.md):');
+  if (!filename) return;
+
+  const fullFilename = filename.endsWith('.md') ? filename : filename + '.md';
+
+  if (storageMode === 'desktop') {
+    if (!folderHandle) {
+      alert('Please select a folder first');
+      return;
+    }
+
+    try {
+      const studentsFolder = await folderHandle.getDirectoryHandle('Students');
+      const fileHandle = await studentsFolder.getFileHandle(fullFilename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write('# Students\n\n#student - Description\n');
+      await writable.close();
+
+      await loadSettingsEditors();
+      document.getElementById('studentsFileSelect').value = fullFilename;
+      await loadSelectedStudentFile();
+      alert('✓ File created!');
+    } catch(e) {
+      alert('Error creating file: ' + e.message);
+    }
+  } else {
+    alert('Multiple files only supported in desktop mode');
+  }
+}
+
+async function createNewSubjectFile() {
+  const filename = prompt('Enter new subject file name (e.g., subjects-math.md):');
+  if (!filename) return;
+
+  const fullFilename = filename.endsWith('.md') ? filename : filename + '.md';
+
+  if (storageMode === 'desktop') {
+    if (!folderHandle) {
+      alert('Please select a folder first');
+      return;
+    }
+
+    try {
+      const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects');
+      const fileHandle = await subjectsFolder.getFileHandle(fullFilename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write('# Subjects\n\n#subject - Description\n');
+      await writable.close();
+
+      await loadSettingsEditors();
+      document.getElementById('subjectsFileSelect').value = fullFilename;
+      await loadSelectedSubjectFile();
+      alert('✓ File created!');
+    } catch(e) {
+      alert('Error creating file: ' + e.message);
+    }
+  } else {
+    alert('Multiple files only supported in desktop mode');
+  }
+}
+
+async function deleteStudentFile() {
+  if (!confirm(`Delete ${currentStudentFile}?`)) return;
+
+  if (storageMode === 'desktop') {
+    try {
+      const studentsFolder = await folderHandle.getDirectoryHandle('Students');
+      await studentsFolder.removeEntry(currentStudentFile);
+      await loadSettingsEditors();
+      await loadHashtags();
+      alert('✓ File deleted!');
+    } catch(e) {
+      alert('Error deleting file: ' + e.message);
+    }
+  }
+}
+
+async function deleteSubjectFile() {
+  if (!confirm(`Delete ${currentSubjectFile}?`)) return;
+
+  if (storageMode === 'desktop') {
+    try {
+      const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects');
+      await subjectsFolder.removeEntry(currentSubjectFile);
+      await loadSettingsEditors();
+      await loadHashtags();
+      alert('✓ File deleted!');
+    } catch(e) {
+      alert('Error deleting file: ' + e.message);
+    }
   }
 }
 
@@ -700,6 +892,178 @@ async function handleJSONImport(event) {
 
   // Clear the input
   event.target.value = '';
+}
+
+// CSV Export with time calculations
+async function exportCSV() {
+  let allLogs = {};
+
+  // Collect all log data
+  if (storageMode === 'desktop') {
+    if (!folderHandle) {
+      alert('Please select a folder first');
+      return;
+    }
+
+    try {
+      const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
+      for await (const entry of logbookHandle.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+          const fileHandle = await logbookHandle.getFileHandle(entry.name);
+          const file = await fileHandle.getFile();
+          const content = await file.text();
+          const date = entry.name.replace('.md', '');
+          allLogs[date] = content;
+        }
+      }
+    } catch(e) {
+      console.log('Error reading logs:', e);
+    }
+  } else {
+    allLogs = mobileData.logs;
+  }
+
+  // Parse all time entries
+  const rows = [];
+  const studentTotals = {};
+  const subjectTotals = {};
+  const topLevelSubjectTotals = {};
+
+  for (const [date, content] of Object.entries(allLogs)) {
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Match time log entries: - HH:MM – HH:MM → #tags
+      const match = line.match(/^-\s*(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})\s*→\s*(.+)/);
+      if (match) {
+        const startTime = match[1];
+        const endTime = match[2];
+        const tagsAndNotes = match[3];
+
+        // Calculate duration in minutes
+        const duration = calculateDuration(startTime, endTime);
+
+        // Extract hashtags
+        const tags = tagsAndNotes.match(/#[\w\/]+/g) || [];
+        const students = [];
+        const subjects = [];
+
+        tags.forEach(tag => {
+          // Simple heuristic: if it has a slash, it's probably a subject
+          // Otherwise, check if it matches known patterns
+          if (tag.includes('/')) {
+            subjects.push(tag);
+          } else {
+            // Check if tag starts with common subject prefixes
+            if (tag.match(/^#(core|elective|math|reading|writing|science|history|latin|spanish|art|music|pe|piano|readaloud|cooking|chores)/i)) {
+              subjects.push(tag);
+            } else {
+              students.push(tag);
+            }
+          }
+        });
+
+        // Get notes from next line if indented
+        let notes = '';
+        if (i + 1 < lines.length && lines[i + 1].match(/^\s+\w/)) {
+          notes = lines[i + 1].trim();
+        }
+
+        // Create rows for each student-subject combination
+        if (students.length === 0) students.push('#unknown');
+        if (subjects.length === 0) subjects.push('#unspecified');
+
+        students.forEach(student => {
+          subjects.forEach(subject => {
+            rows.push({
+              date,
+              student: student.substring(1),
+              subject: subject.substring(1),
+              startTime,
+              endTime,
+              duration,
+              notes
+            });
+
+            // Add to totals
+            if (!studentTotals[student]) studentTotals[student] = 0;
+            studentTotals[student] += duration;
+
+            if (!subjectTotals[subject]) subjectTotals[subject] = 0;
+            subjectTotals[subject] += duration;
+
+            // Add to top-level subject totals
+            const topLevel = subject.includes('/') ? '#' + subject.split('/')[0].substring(1) : subject;
+            if (!topLevelSubjectTotals[topLevel]) topLevelSubjectTotals[topLevel] = 0;
+            topLevelSubjectTotals[topLevel] += duration;
+          });
+        });
+      }
+    }
+  }
+
+  // Generate CSV
+  let csv = 'Date,Student,Subject,Start,End,Duration (min),Notes\n';
+
+  rows.forEach(row => {
+    csv += `${row.date},${row.student},${row.subject},${row.startTime},${row.endTime},${row.duration},"${row.notes}"\n`;
+  });
+
+  // Add summary section
+  csv += '\n\n=== TOTALS BY STUDENT ===\n';
+  csv += 'Student,Total Hours\n';
+  Object.entries(studentTotals)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([student, minutes]) => {
+      csv += `${student.substring(1)},${(minutes / 60).toFixed(2)}\n`;
+    });
+
+  csv += '\n\n=== TOTALS BY SUBJECT ===\n';
+  csv += 'Subject,Total Hours\n';
+  Object.entries(subjectTotals)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([subject, minutes]) => {
+      csv += `${subject.substring(1)},${(minutes / 60).toFixed(2)}\n`;
+    });
+
+  csv += '\n\n=== TOTALS BY TOP-LEVEL SUBJECT ===\n';
+  csv += 'Subject Category,Total Hours\n';
+  Object.entries(topLevelSubjectTotals)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([subject, minutes]) => {
+      csv += `${subject.substring(1)},${(minutes / 60).toFixed(2)}\n`;
+    });
+
+  // Download CSV
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `homeschool-time-report-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  updateStatus(`✓ CSV exported with ${rows.length} entries`, 'idle');
+}
+
+function calculateDuration(startTime, endTime) {
+  // Parse times in format HH:MM or H:MM
+  const parseTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const start = parseTime(startTime);
+  let end = parseTime(endTime);
+
+  // Handle times crossing midnight
+  if (end < start) {
+    end += 24 * 60;
+  }
+
+  return end - start;
 }
 
 // Timer functions
