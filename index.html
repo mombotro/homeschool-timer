@@ -1,89 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Homeschool Time Tracker</title>
 <style>
-body { font-family: Arial, sans-serif; max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-h1 { color: #333; margin-bottom: 10px; }
-.container { display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
+/* Responsive base styles */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       max-width: 1400px; margin: 0 auto; padding: 10px; background: #f5f5f5; }
+h1 { color: #333; margin: 10px 0; font-size: clamp(18px, 5vw, 24px); }
+
+/* Container - responsive grid */
+.container { display: grid; grid-template-columns: 1fr; gap: 15px; }
+@media (min-width: 768px) {
+  .container { grid-template-columns: 250px 1fr; padding: 20px; }
+  body { padding: 20px; }
+}
+
 .sidebar { display: flex; flex-direction: column; gap: 15px; }
-.panel { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9; }
-.main-panel { border: 1px solid #ddd; padding: 20px; border-radius: 5px; background: #f9f9f9; }
+.panel { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px;
+         box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.main-panel { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
 
-button { background: #4CAF50; color: white; border: none; padding: 10px 15px;
-         cursor: pointer; border-radius: 3px; font-size: 14px; width: 100%; margin-bottom: 5px; }
-button:hover { background: #45a049; }
+/* Buttons - touch-friendly */
+button { background: #4CAF50; color: white; border: none; padding: 12px 15px;
+         cursor: pointer; border-radius: 6px; font-size: 14px; width: 100%; margin-bottom: 5px;
+         font-weight: 500; touch-action: manipulation; }
+button:hover, button:active { opacity: 0.9; }
 button.secondary { background: #008CBA; }
-button.secondary:hover { background: #007399; }
 button.stop { background: #f44336; }
-button.stop:hover { background: #da190b; }
+button.pause { background: #FF9800; }
+button.hidden { display: none; }
 
+/* Text areas */
 textarea { width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace;
-           padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px;
-           line-height: 1.6; }
-#logEditor { height: calc(100vh - 240px); min-height: 400px; }
+           padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+           line-height: 1.6; min-height: 300px; resize: vertical; }
+@media (min-width: 768px) {
+  textarea { min-height: 400px; }
+}
 
-#fileList { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 400px; overflow-y: auto;
-            background: white; border: 1px solid #ddd; border-radius: 3px; }
-#fileList li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; }
-#fileList li:hover { background: #e3f2fd; }
+/* Status */
+#status { background: #e7f3ff; padding: 12px; border-radius: 6px; margin-bottom: 15px;
+          font-weight: 500; min-height: 20px; border: 2px solid #0066cc; color: #004085; }
+#status.running { background: #d4edda; border-color: #28a745; color: #155724; }
+
+/* File list */
+#fileList { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 300px; overflow-y: auto;
+            background: white; border: 1px solid #ddd; border-radius: 6px; }
+#fileList li { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; }
+#fileList li:hover, #fileList li:active { background: #e3f2fd; }
 #fileList li.active { background: #4CAF50; color: white; font-weight: bold; }
 
-#status { background: #fff3cd; padding: 12px; border-radius: 3px; margin-bottom: 15px;
-          font-weight: bold; min-height: 20px; border: 2px solid #ffc107; }
-#status.running { background: #d4edda; border-color: #28a745; color: #155724; }
-#status.idle { background: #e7f3ff; border-color: #0066cc; color: #004085; }
-
-.help { background: #e3f2fd; padding: 12px; border-radius: 3px; margin-bottom: 15px;
-        font-size: 13px; line-height: 1.5; border-left: 4px solid #2196F3; }
-.help strong { display: block; margin-bottom: 5px; color: #1976D2; }
-
-.top-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
-.top-bar button { width: auto; margin: 0; }
-.folder-status { flex: 1; padding: 10px; background: #f0f0f0; border-radius: 3px;
-                 font-size: 14px; }
-
-h2 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
-h3 { margin: 0 0 10px 0; font-size: 18px; color: #333; }
-
-/* Autocomplete dropdown */
-#autocomplete { position: absolute; background: white; border: 2px solid #4CAF50;
-                border-radius: 3px; max-height: 200px; overflow-y: auto; z-index: 1000;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; min-width: 200px; }
-#autocomplete div { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; }
-#autocomplete div:hover, #autocomplete div.selected { background: #e3f2fd; }
-#autocomplete div.selected { background: #4CAF50; color: white; }
-#autocomplete .tag { font-weight: bold; color: #2196F3; }
-#autocomplete .desc { font-size: 12px; color: #666; margin-left: 8px; }
-#autocomplete div.selected .tag { color: white; }
-#autocomplete div.selected .desc { color: #eee; }
-
 /* Tabs */
-.tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; }
-.tab { padding: 10px 20px; cursor: pointer; border: none; background: transparent;
-       color: #666; font-size: 15px; border-bottom: 3px solid transparent; width: auto; margin: 0; }
+.tabs { display: flex; gap: 2px; margin-bottom: 15px; border-bottom: 2px solid #ddd; overflow-x: auto; }
+.tab { padding: 12px 15px; cursor: pointer; border: none; background: transparent;
+       color: #666; font-size: 14px; border-bottom: 3px solid transparent; white-space: nowrap; }
 .tab:hover { background: #f0f0f0; color: #333; }
-.tab.active { color: #4CAF50; border-bottom-color: #4CAF50; font-weight: bold; }
+.tab.active { color: #4CAF50; border-bottom-color: #4CAF50; font-weight: 600; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* Settings editors */
-.settings-editors { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.editor-section { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: white; }
-.editor-section h3 { margin-top: 0; color: #4CAF50; }
-.editor-section textarea { height: 300px; font-size: 13px; }
-button.pause { background: #FF9800; }
-button.pause:hover { background: #F57C00; }
-button.hidden { display: none; }
+/* Settings */
+.settings-editors { display: grid; grid-template-columns: 1fr; gap: 15px; }
+@media (min-width: 768px) {
+  .settings-editors { grid-template-columns: 1fr 1fr; gap: 20px; }
+}
+.editor-section { border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa; }
+.editor-section h3 { margin-top: 0; color: #4CAF50; font-size: 16px; }
+.editor-section textarea { min-height: 250px; font-size: 13px; background: white; }
+
+/* Help */
+.help { background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 15px;
+        font-size: 13px; line-height: 1.5; border-left: 4px solid #2196F3; }
+.help strong { display: block; margin-bottom: 5px; color: #1976D2; }
+
+/* Autocomplete */
+#autocomplete { position: fixed; background: white; border: 2px solid #4CAF50;
+                border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; min-width: 200px;
+                max-width: 90vw; }
+#autocomplete div { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #eee; }
+#autocomplete div:hover, #autocomplete div:active { background: #e3f2fd; }
+#autocomplete div.selected { background: #4CAF50; color: white; }
+#autocomplete .tag { font-weight: bold; color: #2196F3; }
+#autocomplete .desc { font-size: 12px; color: #666; margin-left: 8px; }
+#autocomplete div.selected .tag, #autocomplete div.selected .desc { color: white; }
+
+/* Storage mode indicator */
+.storage-mode { padding: 8px 12px; background: #f0f0f0; border-radius: 6px; font-size: 12px;
+                text-align: center; margin-bottom: 10px; color: #666; }
+.storage-mode.desktop { background: #d4edda; color: #155724; }
+.storage-mode.mobile { background: #fff3cd; color: #856404; }
+
+h2 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
+h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
 </style>
 </head>
 <body>
+
 <h1>📚 Homeschool Time Tracker</h1>
 
-<div class="top-bar">
-  <button onclick="selectFolder()">📁 Select Project Folder</button>
-  <div class="folder-status" id="folderStatus">No folder selected - select the homeschool-timer folder</div>
-</div>
+<div id="storageModeIndicator" class="storage-mode">Detecting platform...</div>
 
 <div class="container">
   <!-- Sidebar -->
@@ -91,23 +109,28 @@ button.hidden { display: none; }
     <!-- Timer Controls -->
     <div class="panel">
       <h2>⏱️ Timer</h2>
-      <button id="startBtn" onclick="startInlineTimer()">▶️ Start Timer</button>
-      <button id="pauseBtn" onclick="pauseInlineTimer()" class="pause hidden">⏸️ Pause Timer</button>
-      <button id="stopBtn" onclick="stopInlineTimer()" class="stop hidden">⏹️ Stop Timer</button>
+      <button id="startBtn" onclick="startTimer()">▶️ Start Timer</button>
+      <button id="pauseBtn" onclick="pauseTimer()" class="pause hidden">⏸️ Pause Timer</button>
+      <button id="stopBtn" onclick="stopTimer()" class="stop hidden">⏹️ Stop Timer</button>
       <button onclick="insertTimerLine()" class="secondary">➕ New Timer Entry</button>
     </div>
 
     <!-- File Management -->
     <div class="panel">
       <h2>📋 Files</h2>
+      <button id="selectFolderBtn" onclick="selectFolder()" class="hidden">📁 Select Folder</button>
+      <button id="createFolderBtn" onclick="createNewFolder()" class="hidden">🆕 Create New Folder</button>
       <button onclick="createTodayLog()">📄 Today's Log</button>
       <button onclick="saveCurrentLog()" class="secondary">💾 Save</button>
       <button onclick="refreshFileList()" class="secondary">🔄 Refresh</button>
+      <button onclick="exportJSON()" class="secondary">⬇️ Export JSON</button>
+      <button onclick="importJSON()" class="secondary">⬆️ Import JSON</button>
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="handleJSONImport(event)">
       <ul id="fileList"></ul>
     </div>
   </div>
 
-  <!-- Main Panel with Tabs -->
+  <!-- Main Panel -->
   <div class="main-panel">
     <!-- Tab Navigation -->
     <div class="tabs">
@@ -117,25 +140,24 @@ button.hidden { display: none; }
 
     <!-- Logs Tab -->
     <div id="logsTab" class="tab-content active">
-      <div id="status" class="idle">Type or insert a timer entry, then click Start Timer</div>
+      <div id="status">Type or insert a timer entry, then click Start Timer</div>
 
       <div class="help">
-        <strong>How to use inline timers:</strong>
-        1. Click "New Timer Entry" or type: <code>- [Timer] #student #subject</code><br>
-        2. Add notes on the next line (optional)<br>
-        3. Click "Start Timer" - it finds the most recent [Timer] entry<br>
-        4. Click "Stop/Pause Timer" - replaces [Timer] with actual times<br>
-        <strong>Autocomplete:</strong> Type <code>#c</code> to see all tags starting with 'c'
+        <strong>How to use:</strong>
+        1. Type: <code>- [Timer] #student #subject</code><br>
+        2. Click "Start Timer"<br>
+        3. Click "Stop Timer" when done<br>
+        <strong>Autocomplete:</strong> Type <code>#</code> to see all tags
       </div>
 
       <h3>📝 <span id="currentFile">No file loaded</span></h3>
-      <textarea id="logEditor" placeholder="Select the project folder and load a file to get started..."></textarea>
+      <textarea id="logEditor" placeholder="Loading..."></textarea>
     </div>
 
     <!-- Settings Tab -->
     <div id="settingsTab" class="tab-content">
       <h3>✏️ Edit Students & Subjects</h3>
-      <p style="margin-bottom: 15px; color: #666;">Define your hashtags here. Format: <code>#tagname - Description</code></p>
+      <p style="margin-bottom: 15px; color: #666;">Format: <code>#tagname - Description</code></p>
 
       <div class="settings-editors">
         <div class="editor-section">
@@ -158,26 +180,70 @@ button.hidden { display: none; }
 <div id="autocomplete"></div>
 
 <script>
+// Storage abstraction
+let storageMode = 'detecting'; // detecting, desktop, mobile
 let folderHandle = null;
 let currentFileHandle = null;
 let currentFileName = null;
-let timerStartTime = null;
-let timerLineIndex = null;
-let timerPausedTime = null;
-let timerState = 'idle'; // idle, running, paused
-let allHashtags = []; // All available hashtags from Students/ and Subjects/
-let autocompleteSelectedIndex = -1;
 let studentsFileHandle = null;
 let subjectsFileHandle = null;
 
+// Timer state
+let timerStartTime = null;
+let timerLineIndex = null;
+let timerPausedTime = null;
+let timerState = 'idle';
+
+// Data
+let allHashtags = [];
+let autocompleteSelectedIndex = -1;
+let mobileData = {
+  logs: {},
+  students: '',
+  subjects: ''
+};
+
+// Initialize
+window.addEventListener('load', async () => {
+  await detectPlatform();
+  setupAutocomplete();
+  updateStatus('👈 Ready to start tracking time!', 'idle');
+});
+
+// Platform detection
+async function detectPlatform() {
+  const hasFileSystemAccess = 'showDirectoryPicker' in window;
+
+  if (hasFileSystemAccess) {
+    storageMode = 'desktop';
+    document.getElementById('storageModeIndicator').textContent = '💻 Desktop Mode - Using folder storage';
+    document.getElementById('storageModeIndicator').className = 'storage-mode desktop';
+    document.getElementById('selectFolderBtn').classList.remove('hidden');
+    document.getElementById('createFolderBtn').classList.remove('hidden');
+
+    // Try to load from previous session (if permission granted)
+    const savedFolder = localStorage.getItem('folderHandle');
+    if (savedFolder) {
+      updateStatus('Select your project folder to continue', 'idle');
+    }
+  } else {
+    storageMode = 'mobile';
+    document.getElementById('storageModeIndicator').textContent = '📱 Mobile Mode - Using browser storage';
+    document.getElementById('storageModeIndicator').className = 'storage-mode mobile';
+    await loadFromLocalStorage();
+    await loadTodayLog();
+  }
+}
+
+// Desktop - File System Access API functions
 async function selectFolder() {
   try {
     folderHandle = await window.showDirectoryPicker();
-    document.getElementById('folderStatus').textContent = `✓ Selected: ${folderHandle.name}`;
     await loadHashtags();
     await loadSettingsEditors();
     await refreshFileList();
     await loadTodayLog();
+    updateStatus('✓ Folder loaded successfully', 'idle');
   } catch(e) {
     if (e.name !== 'AbortError') {
       alert('Error selecting folder: ' + e.message);
@@ -185,170 +251,157 @@ async function selectFolder() {
   }
 }
 
-// Tab switching
-function switchTab(tabName) {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+async function createNewFolder() {
+  try {
+    folderHandle = await window.showDirectoryPicker();
 
-  // Show selected tab
-  if (tabName === 'logs') {
-    document.getElementById('logsTab').classList.add('active');
-    document.querySelectorAll('.tab')[0].classList.add('active');
-  } else if (tabName === 'settings') {
-    document.getElementById('settingsTab').classList.add('active');
-    document.querySelectorAll('.tab')[1].classList.add('active');
-  }
-}
+    // Create folder structure
+    const folders = ['Students', 'Subjects', 'Logbook', 'Templates'];
+    for (const folderName of folders) {
+      try {
+        await folderHandle.getDirectoryHandle(folderName, { create: true });
+      } catch(e) {
+        console.log(`Folder ${folderName} may already exist`);
+      }
+    }
 
-// Timer button visibility
-function updateTimerButtons() {
-  const startBtn = document.getElementById('startBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
-  const stopBtn = document.getElementById('stopBtn');
+    // Create default students file
+    const studentsFolder = await folderHandle.getDirectoryHandle('Students', { create: true });
+    const studentsFile = await studentsFolder.getFileHandle('students.md', { create: true });
+    const studentsWritable = await studentsFile.createWritable();
+    await studentsWritable.write(`# Students
 
-  if (timerState === 'idle') {
-    startBtn.classList.remove('hidden');
-    pauseBtn.classList.add('hidden');
-    stopBtn.classList.add('hidden');
-  } else if (timerState === 'running') {
-    startBtn.classList.add('hidden');
-    pauseBtn.classList.remove('hidden');
-    stopBtn.classList.remove('hidden');
-  } else if (timerState === 'paused') {
-    startBtn.classList.remove('hidden');
-    startBtn.textContent = '▶️ Resume Timer';
-    pauseBtn.classList.add('hidden');
-    stopBtn.classList.remove('hidden');
+#student1 - First student
+#student2 - Second student
+`);
+    await studentsWritable.close();
+
+    // Create default subjects file
+    const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects', { create: true });
+    const subjectsFile = await subjectsFolder.getFileHandle('subjects.md', { create: true });
+    const subjectsWritable = await subjectsFile.createWritable();
+    await subjectsWritable.write(`# Subjects
+
+## Core Subjects
+#core/math - Mathematics
+#core/reading - Reading
+#core/writing - Writing
+#core/science - Science
+
+## Electives
+#elective/art - Art
+#elective/music - Music
+#elective/pe - Physical Education
+`);
+    await subjectsWritable.close();
+
+    // Create template
+    const templatesFolder = await folderHandle.getDirectoryHandle('Templates', { create: true });
+    const templateFile = await templatesFolder.getFileHandle('Daily Log.md', { create: true });
+    const templateWritable = await templateFile.createWritable();
+    await templateWritable.write(`# {{date:YYYY-MM-DD}}
+
+## Time Log
+
+<!-- Add lines here -->
+`);
+    await templateWritable.close();
+
+    alert('✓ Folder structure created successfully!');
+    await loadHashtags();
+    await loadSettingsEditors();
+    await createTodayLog();
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      alert('Error creating folder: ' + e.message);
+    }
   }
 }
 
 async function loadHashtags() {
   allHashtags = [];
+  if (storageMode === 'desktop' && !folderHandle) return;
 
-  try {
-    // Load from Students/ and Subjects/ folders
+  if (storageMode === 'desktop') {
     const folders = ['Students', 'Subjects'];
-
     for (const folderName of folders) {
       try {
         const subfolderHandle = await folderHandle.getDirectoryHandle(folderName);
-
-        // Read all .md files in this folder
         for await (const entry of subfolderHandle.values()) {
           if (entry.kind === 'file' && entry.name.endsWith('.md')) {
             const fileHandle = await subfolderHandle.getFileHandle(entry.name);
             const file = await fileHandle.getFile();
             const content = await file.text();
-
-            // Parse hashtags from the file
-            const lines = content.split('\n');
-            for (const line of lines) {
-              // Match lines like: #tag - Description
-              const match = line.match(/^(#[\w\/]+)\s*-?\s*(.*)/);
-              if (match) {
-                const tag = match[1];
-                const desc = match[2].trim();
-                allHashtags.push({ tag, desc });
-              }
-            }
+            parseHashtagsFromText(content);
           }
         }
       } catch(e) {
-        console.log(`Folder ${folderName} not found or error reading:`, e);
+        console.log(`Folder ${folderName} not found:`, e);
       }
     }
-
-    console.log('Loaded hashtags:', allHashtags);
-  } catch(e) {
-    console.log('Error loading hashtags:', e);
+  } else {
+    parseHashtagsFromText(mobileData.students + '\n' + mobileData.subjects);
   }
 }
 
-// Load students and subjects into editors
+function parseHashtagsFromText(text) {
+  const lines = text.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^(#[\w\/]+)\s*-?\s*(.*)/);
+    if (match) {
+      allHashtags.push({ tag: match[1], desc: match[2].trim() });
+    }
+  }
+}
+
 async function loadSettingsEditors() {
-  if (!folderHandle) return;
+  if (storageMode === 'desktop' && !folderHandle) return;
 
-  try {
-    // Load students
-    const studentsFolder = await folderHandle.getDirectoryHandle('Students');
-    studentsFileHandle = await studentsFolder.getFileHandle('students.md');
-    const studentsFile = await studentsFileHandle.getFile();
-    const studentsContent = await studentsFile.text();
-    document.getElementById('studentsEditor').value = studentsContent;
-  } catch(e) {
-    console.log('Error loading students:', e);
-    document.getElementById('studentsEditor').value = '# Students\n\n#student - Description\n';
-  }
+  if (storageMode === 'desktop') {
+    try {
+      const studentsFolder = await folderHandle.getDirectoryHandle('Students');
+      studentsFileHandle = await studentsFolder.getFileHandle('students.md');
+      const studentsFile = await studentsFileHandle.getFile();
+      document.getElementById('studentsEditor').value = await studentsFile.text();
+    } catch(e) {
+      console.log('Students file not found:', e);
+      document.getElementById('studentsEditor').value = '# Students\n\n#student - Description\n';
+    }
 
-  try {
-    // Load subjects
-    const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects');
-    subjectsFileHandle = await subjectsFolder.getFileHandle('subjects.md');
-    const subjectsFile = await subjectsFileHandle.getFile();
-    const subjectsContent = await subjectsFile.text();
-    document.getElementById('subjectsEditor').value = subjectsContent;
-  } catch(e) {
-    console.log('Error loading subjects:', e);
-    document.getElementById('subjectsEditor').value = '# Subjects\n\n#subject - Description\n';
-  }
-}
-
-async function saveStudents() {
-  if (!studentsFileHandle) {
-    alert('Students file not loaded');
-    return;
-  }
-
-  try {
-    const content = document.getElementById('studentsEditor').value;
-    const writable = await studentsFileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-    alert('✓ Students saved!');
-    await loadHashtags(); // Reload hashtags
-  } catch(e) {
-    alert('Error saving students: ' + e.message);
-  }
-}
-
-async function saveSubjects() {
-  if (!subjectsFileHandle) {
-    alert('Subjects file not loaded');
-    return;
-  }
-
-  try {
-    const content = document.getElementById('subjectsEditor').value;
-    const writable = await subjectsFileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-    alert('✓ Subjects saved!');
-    await loadHashtags(); // Reload hashtags
-  } catch(e) {
-    alert('Error saving subjects: ' + e.message);
+    try {
+      const subjectsFolder = await folderHandle.getDirectoryHandle('Subjects');
+      subjectsFileHandle = await subjectsFolder.getFileHandle('subjects.md');
+      const subjectsFile = await subjectsFileHandle.getFile();
+      document.getElementById('subjectsEditor').value = await subjectsFile.text();
+    } catch(e) {
+      console.log('Subjects file not found:', e);
+      document.getElementById('subjectsEditor').value = '# Subjects\n\n#subject - Description\n';
+    }
+  } else {
+    document.getElementById('studentsEditor').value = mobileData.students;
+    document.getElementById('subjectsEditor').value = mobileData.subjects;
   }
 }
 
 async function refreshFileList() {
-  if (!folderHandle) return;
-
   const fileList = document.getElementById('fileList');
   fileList.innerHTML = '';
 
-  const files = [];
+  let files = [];
 
-  try {
-    // Access the Logbook subfolder
-    const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
-
-    for await (const entry of logbookHandle.values()) {
-      if (entry.kind === 'file' && entry.name.endsWith('.md')) {
-        files.push(entry.name);
+  if (storageMode === 'desktop' && folderHandle) {
+    try {
+      const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
+      for await (const entry of logbookHandle.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+          files.push(entry.name);
+        }
       }
+    } catch(e) {
+      console.log('Logbook folder not found:', e);
     }
-  } catch(e) {
-    console.log('Error accessing Logbook folder:', e);
+  } else if (storageMode === 'mobile') {
+    files = Object.keys(mobileData.logs).map(date => date + '.md');
   }
 
   files.sort().reverse();
@@ -374,95 +427,292 @@ async function refreshFileList() {
 }
 
 async function loadLog(filename) {
-  if (!folderHandle) return;
-
-  try {
-    const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
-    currentFileHandle = await logbookHandle.getFileHandle(filename);
-    const file = await currentFileHandle.getFile();
-    const content = await file.text();
-
+  if (storageMode === 'desktop') {
+    if (!folderHandle) return;
+    try {
+      const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
+      currentFileHandle = await logbookHandle.getFileHandle(filename);
+      const file = await currentFileHandle.getFile();
+      const content = await file.text();
+      document.getElementById('logEditor').value = content;
+      document.getElementById('currentFile').textContent = filename;
+      currentFileName = filename;
+      await refreshFileList();
+    } catch(e) {
+      console.log('Error loading file:', e);
+    }
+  } else {
+    const date = filename.replace('.md', '');
+    const content = mobileData.logs[date] || `# ${date}\n\n## Time Log\n\n`;
     document.getElementById('logEditor').value = content;
     document.getElementById('currentFile').textContent = filename;
     currentFileName = filename;
-
-    updateStatus('📄 Loaded ' + filename, 'idle');
-    await refreshFileList();
-  } catch(e) {
-    alert('Error loading file: ' + e.message);
+    refreshFileList();
   }
 }
 
 async function loadTodayLog() {
   const today = new Date().toISOString().slice(0, 10) + '.md';
-  try {
-    await loadLog(today);
-  } catch(e) {
-    console.log("Today's log not found");
-  }
+  await loadLog(today);
 }
 
 async function createTodayLog() {
-  if (!folderHandle) {
-    alert('Please select the project folder first');
-    return;
-  }
-
   const today = new Date().toISOString().slice(0, 10);
   const filename = today + '.md';
 
-  try {
-    const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
-    const fileHandle = await logbookHandle.getFileHandle(filename, { create: true });
-    const file = await fileHandle.getFile();
-    let content = await file.text();
-
-    if (!content.trim()) {
-      content = `# ${today}\n\n## Time Log\n\n`;
-      const writable = await fileHandle.createWritable();
-      await writable.write(content);
-      await writable.close();
+  if (storageMode === 'desktop') {
+    if (!folderHandle) {
+      alert('Please select or create a folder first');
+      return;
     }
-
+    try {
+      const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
+      const fileHandle = await logbookHandle.getFileHandle(filename, { create: true });
+      const file = await fileHandle.getFile();
+      let content = await file.text();
+      if (!content.trim()) {
+        content = `# ${today}\n\n## Time Log\n\n`;
+        const writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+      }
+      await loadLog(filename);
+      await refreshFileList();
+    } catch(e) {
+      alert('Error creating log: ' + e.message);
+    }
+  } else {
+    if (!mobileData.logs[today]) {
+      mobileData.logs[today] = `# ${today}\n\n## Time Log\n\n`;
+      saveToLocalStorage();
+    }
     await loadLog(filename);
-    await refreshFileList();
-  } catch(e) {
-    alert('Error creating log: ' + e.message);
+    refreshFileList();
   }
 }
 
 async function saveCurrentLog() {
-  if (!currentFileHandle) {
-    alert('No file loaded');
-    return;
-  }
-
-  try {
-    const content = document.getElementById('logEditor').value;
-    const writable = await currentFileHandle.createWritable();
-    await writable.write(content);
-    await writable.close();
-
+  if (storageMode === 'desktop') {
+    if (!currentFileHandle) {
+      alert('No file loaded');
+      return;
+    }
+    try {
+      const content = document.getElementById('logEditor').value;
+      const writable = await currentFileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      updateStatus(`✓ Saved ${currentFileName}`, 'idle');
+    } catch(e) {
+      alert('Error saving file: ' + e.message);
+    }
+  } else {
+    const date = currentFileName.replace('.md', '');
+    mobileData.logs[date] = document.getElementById('logEditor').value;
+    saveToLocalStorage();
     updateStatus(`✓ Saved ${currentFileName}`, 'idle');
-  } catch(e) {
-    alert('Error saving file: ' + e.message);
   }
 }
 
+async function saveStudents() {
+  const content = document.getElementById('studentsEditor').value;
+
+  if (storageMode === 'desktop') {
+    if (!studentsFileHandle) {
+      alert('Students file not loaded');
+      return;
+    }
+    try {
+      const writable = await studentsFileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      alert('✓ Students saved!');
+      await loadHashtags();
+    } catch(e) {
+      alert('Error saving: ' + e.message);
+    }
+  } else {
+    mobileData.students = content;
+    saveToLocalStorage();
+    await loadHashtags();
+    alert('✓ Students saved!');
+  }
+}
+
+async function saveSubjects() {
+  const content = document.getElementById('subjectsEditor').value;
+
+  if (storageMode === 'desktop') {
+    if (!subjectsFileHandle) {
+      alert('Subjects file not loaded');
+      return;
+    }
+    try {
+      const writable = await subjectsFileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      alert('✓ Subjects saved!');
+      await loadHashtags();
+    } catch(e) {
+      alert('Error saving: ' + e.message);
+    }
+  } else {
+    mobileData.subjects = content;
+    saveToLocalStorage();
+    await loadHashtags();
+    alert('✓ Subjects saved!');
+  }
+}
+
+// Mobile - localStorage functions
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem('homeschool-tracker-data');
+  if (saved) {
+    mobileData = JSON.parse(saved);
+  } else {
+    mobileData = {
+      logs: {},
+      students: `# Students\n\n#student1 - First student\n#student2 - Second student\n`,
+      subjects: `# Subjects\n\n#core/math - Mathematics\n#core/reading - Reading\n#elective/art - Art\n`
+    };
+    saveToLocalStorage();
+  }
+
+  document.getElementById('studentsEditor').value = mobileData.students;
+  document.getElementById('subjectsEditor').value = mobileData.subjects;
+  parseHashtagsFromText(mobileData.students + '\n' + mobileData.subjects);
+  refreshFileList();
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem('homeschool-tracker-data', JSON.stringify(mobileData));
+}
+
+// JSON Import/Export
+async function exportJSON() {
+  let data;
+
+  if (storageMode === 'desktop') {
+    if (!folderHandle) {
+      alert('Please select a folder first');
+      return;
+    }
+
+    // Collect all data from folder
+    data = {
+      logs: {},
+      students: document.getElementById('studentsEditor').value,
+      subjects: document.getElementById('subjectsEditor').value
+    };
+
+    try {
+      const logbookHandle = await folderHandle.getDirectoryHandle('Logbook');
+      for await (const entry of logbookHandle.values()) {
+        if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+          const fileHandle = await logbookHandle.getFileHandle(entry.name);
+          const file = await fileHandle.getFile();
+          const content = await file.text();
+          const date = entry.name.replace('.md', '');
+          data.logs[date] = content;
+        }
+      }
+    } catch(e) {
+      console.log('Error reading logs:', e);
+    }
+  } else {
+    data = mobileData;
+  }
+
+  const dataStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `homeschool-data-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  updateStatus('✓ Data exported to JSON', 'idle');
+}
+
+function importJSON() {
+  document.getElementById('jsonFileInput').click();
+}
+
+async function handleJSONImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (!confirm('This will merge/overwrite current data. Continue?')) {
+        return;
+      }
+
+      if (storageMode === 'desktop') {
+        if (!folderHandle) {
+          alert('Please select a folder first');
+          return;
+        }
+
+        // Import students
+        if (data.students) {
+          document.getElementById('studentsEditor').value = data.students;
+          await saveStudents();
+        }
+
+        // Import subjects
+        if (data.subjects) {
+          document.getElementById('subjectsEditor').value = data.subjects;
+          await saveSubjects();
+        }
+
+        // Import logs
+        if (data.logs) {
+          const logbookHandle = await folderHandle.getDirectoryHandle('Logbook', { create: true });
+          for (const [date, content] of Object.entries(data.logs)) {
+            const filename = date + '.md';
+            const fileHandle = await logbookHandle.getFileHandle(filename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+          }
+        }
+
+        await refreshFileList();
+        await loadTodayLog();
+        alert('✓ Data imported successfully!');
+      } else {
+        mobileData = data;
+        saveToLocalStorage();
+        loadFromLocalStorage();
+        await loadTodayLog();
+        alert('✓ Data imported successfully!');
+      }
+    } catch(err) {
+      alert('Error importing file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+
+  // Clear the input
+  event.target.value = '';
+}
+
+// Timer functions
 function insertTimerLine() {
   const editor = document.getElementById('logEditor');
   const cursorPos = editor.selectionStart;
   const content = editor.value;
 
-  // Find the position to insert (end of current line or at cursor)
   let insertPos = cursorPos;
-
-  // If we're in the middle of a line, go to the end of it
   while (insertPos < content.length && content[insertPos] !== '\n') {
     insertPos++;
   }
 
-  // Add newline if we're not at the end of content
   const prefix = (insertPos < content.length || content[insertPos - 1] === '\n') ? '' : '\n';
   const newLine = `${prefix}- [Timer] #student #subject\n  `;
 
@@ -470,24 +720,22 @@ function insertTimerLine() {
   editor.selectionStart = editor.selectionEnd = insertPos + newLine.length;
   editor.focus();
 
-  updateStatus('Timer entry inserted - add your tags and notes, then click Start Timer', 'idle');
+  updateStatus('Timer entry inserted - add tags and click Start', 'idle');
 }
 
-function startInlineTimer() {
+function startTimer() {
   const editor = document.getElementById('logEditor');
   const lines = editor.value.split('\n');
 
-  // If paused, resume
   if (timerState === 'paused') {
     timerState = 'running';
     document.getElementById('startBtn').textContent = '▶️ Start Timer';
     updateTimerButtons();
-    const timerContent = lines[timerLineIndex].replace('- [Timer]', '').trim();
-    updateStatus(`⏱️ RUNNING (resumed)... for: ${timerContent}`, 'running');
+    const content = lines[timerLineIndex].replace('- [Timer]', '').trim();
+    updateStatus(`⏱️ RUNNING (resumed)... ${content}`, 'running');
     return;
   }
 
-  // Find the last line with [Timer]
   let timerLine = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
     if (lines[i].includes('[Timer]')) {
@@ -497,7 +745,7 @@ function startInlineTimer() {
   }
 
   if (timerLine === -1) {
-    alert('No [Timer] entry found. Type "- [Timer] #tags" or click "New Timer Entry"');
+    alert('No [Timer] entry found. Click "New Timer Entry" or type: - [Timer] #tags');
     return;
   }
 
@@ -506,25 +754,21 @@ function startInlineTimer() {
   timerState = 'running';
   updateTimerButtons();
 
-  const timerContent = lines[timerLine].replace('- [Timer]', '').trim();
-  updateStatus(`⏱️ RUNNING... Started at ${timerStartTime.toLocaleTimeString()} for: ${timerContent}`, 'running');
+  const content = lines[timerLine].replace('- [Timer]', '').trim();
+  updateStatus(`⏱️ RUNNING... Started at ${timerStartTime.toLocaleTimeString()} - ${content}`, 'running');
 }
 
-function pauseInlineTimer() {
-  if (timerState !== 'running') {
-    alert('No timer running');
-    return;
-  }
-
+function pauseTimer() {
+  if (timerState !== 'running') return;
   timerState = 'paused';
   timerPausedTime = new Date();
   updateTimerButtons();
   updateStatus('⏸️ PAUSED - Click Start to resume or Stop to finish', 'idle');
 }
 
-function stopInlineTimer() {
+function stopTimer() {
   if (!timerStartTime || timerLineIndex === null) {
-    alert('No timer running. Click Start Timer first.');
+    alert('No timer running');
     return;
   }
 
@@ -535,22 +779,15 @@ function stopInlineTimer() {
   const editor = document.getElementById('logEditor');
   const lines = editor.value.split('\n');
 
-  // Replace [Timer] with actual times
   if (timerLineIndex < lines.length && lines[timerLineIndex].includes('[Timer]')) {
     lines[timerLineIndex] = lines[timerLineIndex].replace('[Timer]', `${startStr} – ${endStr} →`);
     editor.value = lines.join('\n');
-
-    updateStatus(`✓ Timer stopped! Duration recorded: ${startStr} – ${endStr}`, 'idle');
-
-    // Auto-save
-    if (currentFileHandle) {
-      saveCurrentLog();
-    }
+    saveCurrentLog();
+    updateStatus(`✓ Saved: ${startStr} – ${endStr}`, 'idle');
   } else {
-    alert('Timer entry was modified or deleted. Cannot update times.');
+    alert('Timer entry was modified or deleted');
   }
 
-  // Reset timer state
   timerStartTime = null;
   timerLineIndex = null;
   timerPausedTime = null;
@@ -559,46 +796,103 @@ function stopInlineTimer() {
   updateTimerButtons();
 }
 
-function updateStatus(message, type) {
-  const status = document.getElementById('status');
-  status.textContent = message;
-  status.className = type;
+function updateTimerButtons() {
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  if (timerState === 'idle') {
+    startBtn.classList.remove('hidden');
+    pauseBtn.classList.add('hidden');
+    stopBtn.classList.add('hidden');
+  } else if (timerState === 'running') {
+    startBtn.classList.add('hidden');
+    pauseBtn.classList.remove('hidden');
+    stopBtn.classList.remove('hidden');
+  } else if (timerState === 'paused') {
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = '▶️ Resume Timer';
+    pauseBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+  }
 }
 
-// Autocomplete functions
+// Autocomplete
+function setupAutocomplete() {
+  const editor = document.getElementById('logEditor');
+
+  editor.addEventListener('input', (e) => {
+    const cursorPos = editor.selectionStart;
+    const text = editor.value;
+
+    let hashStart = cursorPos - 1;
+    let currentWord = '';
+
+    while (hashStart >= 0 && text[hashStart] !== ' ' && text[hashStart] !== '\n' && text[hashStart] !== '\t') {
+      currentWord = text[hashStart] + currentWord;
+      hashStart--;
+    }
+
+    if (currentWord.startsWith('#') && currentWord.length > 1) {
+      const prefix = currentWord.substring(1);
+      showAutocomplete(prefix);
+    } else {
+      hideAutocomplete();
+    }
+  });
+
+  // Handle keyboard navigation
+  editor.addEventListener('keydown', (e) => {
+    const dropdown = document.getElementById('autocomplete');
+    if (dropdown.style.display !== 'block') return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const items = dropdown.querySelectorAll('div');
+      autocompleteSelectedIndex = Math.min(autocompleteSelectedIndex + 1, items.length - 1);
+      updateAutocompleteSelection();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      autocompleteSelectedIndex = Math.max(autocompleteSelectedIndex - 1, 0);
+      updateAutocompleteSelection();
+    } else if (e.key === 'Enter') {
+      const items = dropdown.querySelectorAll('div');
+      if (autocompleteSelectedIndex >= 0 && autocompleteSelectedIndex < items.length) {
+        e.preventDefault();
+        items[autocompleteSelectedIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      hideAutocomplete();
+    }
+  });
+}
+
 function showAutocomplete(prefix) {
   const dropdown = document.getElementById('autocomplete');
   const editor = document.getElementById('logEditor');
 
-  // Filter hashtags by prefix (case insensitive)
   const filtered = allHashtags.filter(h =>
     h.tag.toLowerCase().startsWith('#' + prefix.toLowerCase())
   );
 
   if (filtered.length === 0) {
-    dropdown.style.display = 'none';
+    hideAutocomplete();
     return;
   }
 
-  // Populate dropdown
   dropdown.innerHTML = '';
   filtered.forEach((item, index) => {
     const div = document.createElement('div');
     div.innerHTML = `<span class="tag">${item.tag}</span><span class="desc">${item.desc}</span>`;
     div.onclick = () => insertHashtag(item.tag);
-    div.dataset.index = index;
     dropdown.appendChild(div);
   });
 
-  // Position dropdown at cursor
+  // Position dropdown
   const editorRect = editor.getBoundingClientRect();
-  const textBeforeCursor = editor.value.substring(0, editor.selectionStart);
-  const lines = textBeforeCursor.split('\n');
-  const currentLine = lines.length;
-  const lineHeight = 24; // approximate
-
-  dropdown.style.left = editorRect.left + 'px';
-  dropdown.style.top = (editorRect.top + (currentLine * lineHeight)) + 'px';
+  dropdown.style.left = Math.max(10, editorRect.left) + 'px';
+  dropdown.style.top = (editorRect.top + 60) + 'px';
   dropdown.style.display = 'block';
 
   autocompleteSelectedIndex = 0;
@@ -629,14 +923,12 @@ function insertHashtag(tag) {
   const cursorPos = editor.selectionStart;
   const text = editor.value;
 
-  // Find the start of the current hashtag (look backwards for #)
   let hashStart = cursorPos - 1;
   while (hashStart >= 0 && text[hashStart] !== '#' && text[hashStart] !== ' ' && text[hashStart] !== '\n') {
     hashStart--;
   }
 
   if (text[hashStart] === '#') {
-    // Replace from # to cursor with the selected tag
     editor.value = text.substring(0, hashStart) + tag + ' ' + text.substring(cursorPos);
     editor.selectionStart = editor.selectionEnd = hashStart + tag.length + 1;
   }
@@ -645,90 +937,31 @@ function insertHashtag(tag) {
   editor.focus();
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-  const dropdown = document.getElementById('autocomplete');
-  const isAutocompleteVisible = dropdown.style.display === 'block';
+// UI functions
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
 
-  // Handle autocomplete navigation
-  if (isAutocompleteVisible) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const items = dropdown.querySelectorAll('div');
-      autocompleteSelectedIndex = Math.min(autocompleteSelectedIndex + 1, items.length - 1);
-      updateAutocompleteSelection();
-      return;
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      autocompleteSelectedIndex = Math.max(autocompleteSelectedIndex - 1, 0);
-      updateAutocompleteSelection();
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const items = dropdown.querySelectorAll('div');
-      if (autocompleteSelectedIndex >= 0 && autocompleteSelectedIndex < items.length) {
-        items[autocompleteSelectedIndex].click();
-      }
-      return;
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      hideAutocomplete();
-      return;
-    }
+  if (tabName === 'logs') {
+    document.getElementById('logsTab').classList.add('active');
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else if (tabName === 'settings') {
+    document.getElementById('settingsTab').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
   }
+}
 
-  // Ctrl/Cmd + S to save
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault();
-    saveCurrentLog();
+function updateStatus(message, type = 'idle') {
+  const status = document.getElementById('status');
+  status.textContent = message;
+  status.className = type;
+}
+
+// Click outside autocomplete to close
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#autocomplete') && !e.target.closest('#logEditor')) {
+    hideAutocomplete();
   }
-
-  // Ctrl/Cmd + T to insert timer
-  if ((e.ctrlKey || e.metaKey) && e.key === 't') {
-    e.preventDefault();
-    insertTimerLine();
-  }
-});
-
-window.addEventListener('load', () => {
-  updateStatus('👈 Select the Logbook folder to get started', 'idle');
-
-  // Handle typing in the editor
-  const logEditor = document.getElementById('logEditor');
-
-  logEditor.addEventListener('input', (e) => {
-    const editor = e.target;
-    const cursorPos = editor.selectionStart;
-    const text = editor.value;
-
-    // Look backwards from cursor to find if we're typing a hashtag
-    let hashStart = cursorPos - 1;
-    let currentWord = '';
-
-    while (hashStart >= 0 && text[hashStart] !== ' ' && text[hashStart] !== '\n' && text[hashStart] !== '\t') {
-      currentWord = text[hashStart] + currentWord;
-      hashStart--;
-    }
-
-    // Check if current word starts with #
-    if (currentWord.startsWith('#') && currentWord.length > 1) {
-      const prefix = currentWord.substring(1); // Remove the #
-      console.log('Autocomplete triggered for:', prefix, 'Available tags:', allHashtags.length);
-      showAutocomplete(prefix);
-    } else {
-      hideAutocomplete();
-    }
-  });
-
-  // Click outside to close autocomplete
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('#autocomplete') && !e.target.closest('#logEditor')) {
-      hideAutocomplete();
-    }
-  });
 });
 </script>
 

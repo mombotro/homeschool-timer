@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Homeschool Time Tracker</title>
+<style>
+/* Base styles with mobile-first approach */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       margin: 0; padding: 10px; background: #f5f5f5; }
+h1 { font-size: 20px; margin: 10px 0; color: #333; }
+.container { display: flex; flex-direction: column; gap: 10px; }
+.panel { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* Buttons */
+button { background: #4CAF50; color: white; border: none; padding: 12px 15px;
+         border-radius: 6px; font-size: 14px; width: 100%; margin-bottom: 8px;
+         font-weight: 500; cursor: pointer; }
+button:active { opacity: 0.8; }
+button.secondary { background: #008CBA; }
+button.stop { background: #f44336; }
+button.pause { background: #FF9800; }
+button.hidden { display: none; }
+button.small { padding: 8px 12px; font-size: 13px; }
+
+/* Storage selector */
+.storage-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+.storage-btn { flex: 1; min-width: 120px; padding: 10px; background: #f0f0f0; color: #333; }
+.storage-btn.active { background: #4CAF50; color: white; }
+
+/* Editor */
+textarea { width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace;
+           padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
+           line-height: 1.5; min-height: 300px; resize: vertical; }
+
+/* Status */
+#status { padding: 12px; border-radius: 6px; margin-bottom: 10px; font-weight: 500;
+          background: #e7f3ff; border: 2px solid #0066cc; color: #004085; }
+#status.running { background: #d4edda; border-color: #28a745; color: #155724; }
+
+/* File list */
+#fileList { list-style: none; padding: 0; margin: 10px 0; }
+#fileList li { padding: 12px; background: #f8f8f8; margin-bottom: 5px; border-radius: 6px;
+               cursor: pointer; }
+#fileList li.active { background: #4CAF50; color: white; }
+
+/* Tabs */
+.tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; }
+.tab { flex: 1; padding: 12px; background: transparent; color: #666; border: none;
+       border-bottom: 3px solid transparent; font-size: 14px; }
+.tab.active { color: #4CAF50; border-bottom-color: #4CAF50; font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Autocomplete */
+#autocomplete { position: fixed; background: white; border: 2px solid #4CAF50;
+                border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; min-width: 200px; }
+#autocomplete div { padding: 10px 12px; border-bottom: 1px solid #eee; }
+#autocomplete div.selected { background: #4CAF50; color: white; }
+#autocomplete .tag { font-weight: bold; color: #2196F3; }
+#autocomplete .desc { font-size: 12px; color: #666; margin-left: 8px; }
+#autocomplete div.selected .tag, #autocomplete div.selected .desc { color: white; }
+
+/* Settings */
+.settings-section { margin-bottom: 20px; }
+.settings-section h3 { margin: 0 0 10px 0; color: #4CAF50; font-size: 16px; }
+.settings-section textarea { min-height: 200px; }
+
+/* Help text */
+.help { background: #e3f2fd; padding: 10px; border-radius: 6px; font-size: 13px;
+        line-height: 1.5; border-left: 4px solid #2196F3; margin-bottom: 15px; }
+.help strong { display: block; margin-bottom: 5px; color: #1976D2; }
+
+/* Cloud sync status */
+.sync-status { padding: 8px; border-radius: 4px; font-size: 12px; text-align: center;
+               background: #f0f0f0; margin-top: 10px; }
+.sync-status.synced { background: #d4edda; color: #155724; }
+.sync-status.syncing { background: #fff3cd; color: #856404; }
+</style>
+</head>
+<body>
+
+<h1>📚 Homeschool Timer</h1>
+
+<!-- Storage Selection -->
+<div class="panel">
+  <div class="storage-selector">
+    <button class="storage-btn active" onclick="setStorage('local')" id="storageLocal">
+      📱 Local Storage
+    </button>
+    <button class="storage-btn" onclick="setStorage('gdrive')" id="storageGDrive">
+      ☁️ Google Drive
+    </button>
+    <button class="storage-btn" onclick="setStorage('dropbox')" id="storageDropbox">
+      📦 Dropbox
+    </button>
+  </div>
+  <div id="syncStatus" class="sync-status">Using local storage</div>
+</div>
+
+<div class="container">
+  <!-- Timer Controls -->
+  <div class="panel">
+    <h2>⏱️ Timer</h2>
+    <button id="startBtn" onclick="startTimer()">▶️ Start</button>
+    <button id="pauseBtn" onclick="pauseTimer()" class="pause hidden">⏸️ Pause</button>
+    <button id="stopBtn" onclick="stopTimer()" class="stop hidden">⏹️ Stop</button>
+    <button onclick="insertTimerLine()" class="secondary">➕ New Entry</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="panel">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('logs')">📋 Logs</button>
+      <button class="tab" onclick="switchTab('files')">📁 Files</button>
+      <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
+    </div>
+
+    <!-- Logs Tab -->
+    <div id="logsTab" class="tab-content active">
+      <div id="status">Type # to see autocomplete</div>
+      <div class="help">
+        <strong>Quick start:</strong>
+        Type <code>- [Timer] #student #subject</code> then tap Start/Stop<br>
+        <strong>Autocomplete:</strong> Type <code>#</code> to see tags
+      </div>
+      <h3>📝 <span id="currentFile">Today's Log</span></h3>
+      <textarea id="logEditor" placeholder="Loading..."></textarea>
+      <button onclick="saveLog()" class="secondary" style="margin-top: 10px;">💾 Save</button>
+    </div>
+
+    <!-- Files Tab -->
+    <div id="filesTab" class="tab-content">
+      <button onclick="createTodayLog()">📄 Today's Log</button>
+      <button onclick="downloadAllData()" class="secondary">⬇️ Download All Data</button>
+      <button onclick="uploadData()" class="secondary">⬆️ Upload Data</button>
+      <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileUpload(event)">
+      <ul id="fileList"></ul>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settingsTab" class="tab-content">
+      <div class="settings-section">
+        <h3>👥 Students</h3>
+        <textarea id="studentsEditor" placeholder="#student - Description"></textarea>
+        <button onclick="saveStudents()">💾 Save Students</button>
+      </div>
+      <div class="settings-section">
+        <h3>📚 Subjects</h3>
+        <textarea id="subjectsEditor" placeholder="#subject - Description"></textarea>
+        <button onclick="saveSubjects()">💾 Save Subjects</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Autocomplete -->
+<div id="autocomplete"></div>
+
+<script>
+// Storage abstraction layer
+let storage = {
+  type: 'local', // local, gdrive, dropbox
+  data: {
+    logs: {},
+    students: '',
+    subjects: ''
+  }
+};
+
+let timerStartTime = null;
+let timerLineIndex = null;
+let timerState = 'idle';
+let allHashtags = [];
+let autocompleteSelectedIndex = -1;
+let currentLogDate = null;
+
+// Initialize
+window.addEventListener('load', () => {
+  loadFromStorage();
+  loadTodayLog();
+  setupAutocomplete();
+  updateStatus('Ready to track time!');
+});
+
+// Storage functions
+function loadFromStorage() {
+  const saved = localStorage.getItem('homeschool-tracker');
+  if (saved) {
+    storage.data = JSON.parse(saved);
+  } else {
+    // Initialize with defaults
+    storage.data.students = `# Students\n\n#student1 - First student\n#student2 - Second student`;
+    storage.data.subjects = `# Subjects\n\n#core/math - Mathematics\n#core/reading - Reading\n#elective/art - Art`;
+    saveToStorage();
+  }
+
+  // Load into editors
+  document.getElementById('studentsEditor').value = storage.data.students || '';
+  document.getElementById('subjectsEditor').value = storage.data.subjects || '';
+
+  parseHashtags();
+  refreshFileList();
+}
+
+function saveToStorage() {
+  localStorage.setItem('homeschool-tracker', JSON.stringify(storage.data));
+  updateSyncStatus('Saved locally');
+}
+
+function parseHashtags() {
+  allHashtags = [];
+  const text = storage.data.students + '\n' + storage.data.subjects;
+  const lines = text.split('\n');
+
+  for (const line of lines) {
+    const match = line.match(/^(#[\w\/]+)\s*-?\s*(.*)/);
+    if (match) {
+      allHashtags.push({ tag: match[1], desc: match[2].trim() });
+    }
+  }
+}
+
+// File management
+function loadTodayLog() {
+  const today = new Date().toISOString().slice(0, 10);
+  loadLog(today);
+}
+
+function loadLog(date) {
+  currentLogDate = date;
+  const log = storage.data.logs[date] || `# ${date}\n\n## Time Log\n\n`;
+  document.getElementById('logEditor').value = log;
+  document.getElementById('currentFile').textContent = date;
+  refreshFileList();
+}
+
+function saveLog() {
+  if (!currentLogDate) return;
+  storage.data.logs[currentLogDate] = document.getElementById('logEditor').value;
+  saveToStorage();
+  refreshFileList();
+}
+
+function createTodayLog() {
+  loadTodayLog();
+  switchTab('logs');
+}
+
+function refreshFileList() {
+  const fileList = document.getElementById('fileList');
+  fileList.innerHTML = '';
+
+  const dates = Object.keys(storage.data.logs).sort().reverse();
+
+  if (dates.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No logs yet';
+    li.style.fontStyle = 'italic';
+    li.style.cursor = 'default';
+    fileList.appendChild(li);
+    return;
+  }
+
+  for (const date of dates) {
+    const li = document.createElement('li');
+    li.textContent = date;
+    li.onclick = () => {
+      loadLog(date);
+      switchTab('logs');
+    };
+    if (date === currentLogDate) {
+      li.className = 'active';
+    }
+    fileList.appendChild(li);
+  }
+}
+
+// Settings
+function saveStudents() {
+  storage.data.students = document.getElementById('studentsEditor').value;
+  saveToStorage();
+  parseHashtags();
+  alert('✓ Students saved!');
+}
+
+function saveSubjects() {
+  storage.data.subjects = document.getElementById('subjectsEditor').value;
+  saveToStorage();
+  parseHashtags();
+  alert('✓ Subjects saved!');
+}
+
+// Timer functions
+function startTimer() {
+  const editor = document.getElementById('logEditor');
+  const lines = editor.value.split('\n');
+
+  if (timerState === 'paused') {
+    timerState = 'running';
+    document.getElementById('startBtn').textContent = '▶️ Start';
+    updateTimerButtons();
+    updateStatus('⏱️ Resumed...', 'running');
+    return;
+  }
+
+  let timerLine = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes('[Timer]')) {
+      timerLine = i;
+      break;
+    }
+  }
+
+  if (timerLine === -1) {
+    alert('No [Timer] entry found. Click "New Entry" or type: - [Timer] #tags');
+    return;
+  }
+
+  timerStartTime = new Date();
+  timerLineIndex = timerLine;
+  timerState = 'running';
+  updateTimerButtons();
+
+  const content = lines[timerLine].replace('- [Timer]', '').trim();
+  updateStatus(`⏱️ RUNNING... ${content}`, 'running');
+}
+
+function pauseTimer() {
+  if (timerState !== 'running') return;
+  timerState = 'paused';
+  updateTimerButtons();
+  updateStatus('⏸️ PAUSED');
+}
+
+function stopTimer() {
+  if (!timerStartTime || timerLineIndex === null) {
+    alert('No timer running');
+    return;
+  }
+
+  const endTime = new Date();
+  const startStr = timerStartTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const endStr = endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+  const editor = document.getElementById('logEditor');
+  const lines = editor.value.split('\n');
+
+  if (timerLineIndex < lines.length && lines[timerLineIndex].includes('[Timer]')) {
+    lines[timerLineIndex] = lines[timerLineIndex].replace('[Timer]', `${startStr} – ${endStr} →`);
+    editor.value = lines.join('\n');
+    saveLog();
+    updateStatus(`✓ Saved: ${startStr} – ${endStr}`);
+  }
+
+  timerStartTime = null;
+  timerLineIndex = null;
+  timerState = 'idle';
+  document.getElementById('startBtn').textContent = '▶️ Start';
+  updateTimerButtons();
+}
+
+function updateTimerButtons() {
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  if (timerState === 'idle') {
+    startBtn.classList.remove('hidden');
+    pauseBtn.classList.add('hidden');
+    stopBtn.classList.add('hidden');
+  } else if (timerState === 'running') {
+    startBtn.classList.add('hidden');
+    pauseBtn.classList.remove('hidden');
+    stopBtn.classList.remove('hidden');
+  } else if (timerState === 'paused') {
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = '▶️ Resume';
+    pauseBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+  }
+}
+
+function insertTimerLine() {
+  const editor = document.getElementById('logEditor');
+  const cursorPos = editor.selectionStart;
+  const content = editor.value;
+
+  let insertPos = cursorPos;
+  while (insertPos < content.length && content[insertPos] !== '\n') {
+    insertPos++;
+  }
+
+  const prefix = (insertPos < content.length || content[insertPos - 1] === '\n') ? '' : '\n';
+  const newLine = `${prefix}- [Timer] #student #subject\n  `;
+
+  editor.value = content.slice(0, insertPos) + newLine + content.slice(insertPos);
+  editor.selectionStart = editor.selectionEnd = insertPos + newLine.length;
+  editor.focus();
+}
+
+// Autocomplete
+function setupAutocomplete() {
+  const editor = document.getElementById('logEditor');
+
+  editor.addEventListener('input', (e) => {
+    const cursorPos = editor.selectionStart;
+    const text = editor.value;
+
+    let hashStart = cursorPos - 1;
+    let currentWord = '';
+
+    while (hashStart >= 0 && text[hashStart] !== ' ' && text[hashStart] !== '\n') {
+      currentWord = text[hashStart] + currentWord;
+      hashStart--;
+    }
+
+    if (currentWord.startsWith('#') && currentWord.length > 1) {
+      const prefix = currentWord.substring(1);
+      showAutocomplete(prefix, editor);
+    } else {
+      hideAutocomplete();
+    }
+  });
+}
+
+function showAutocomplete(prefix, editor) {
+  const dropdown = document.getElementById('autocomplete');
+  const filtered = allHashtags.filter(h =>
+    h.tag.toLowerCase().startsWith('#' + prefix.toLowerCase())
+  );
+
+  if (filtered.length === 0) {
+    hideAutocomplete();
+    return;
+  }
+
+  dropdown.innerHTML = '';
+  filtered.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<span class="tag">${item.tag}</span><span class="desc">${item.desc}</span>`;
+    div.onclick = () => insertHashtag(item.tag);
+    if (index === 0) div.classList.add('selected');
+    dropdown.appendChild(div);
+  });
+
+  // Position dropdown
+  const rect = editor.getBoundingClientRect();
+  dropdown.style.left = '20px';
+  dropdown.style.top = (rect.top + 100) + 'px';
+  dropdown.style.display = 'block';
+}
+
+function hideAutocomplete() {
+  document.getElementById('autocomplete').style.display = 'none';
+}
+
+function insertHashtag(tag) {
+  const editor = document.getElementById('logEditor');
+  const cursorPos = editor.selectionStart;
+  const text = editor.value;
+
+  let hashStart = cursorPos - 1;
+  while (hashStart >= 0 && text[hashStart] !== '#' && text[hashStart] !== ' ' && text[hashStart] !== '\n') {
+    hashStart--;
+  }
+
+  if (text[hashStart] === '#') {
+    editor.value = text.substring(0, hashStart) + tag + ' ' + text.substring(cursorPos);
+    editor.selectionStart = editor.selectionEnd = hashStart + tag.length + 1;
+  }
+
+  hideAutocomplete();
+  editor.focus();
+}
+
+// UI functions
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+  if (tabName === 'logs') {
+    document.getElementById('logsTab').classList.add('active');
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else if (tabName === 'files') {
+    document.getElementById('filesTab').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
+  } else if (tabName === 'settings') {
+    document.getElementById('settingsTab').classList.add('active');
+    document.querySelectorAll('.tab')[2].classList.add('active');
+  }
+}
+
+function updateStatus(message, type = 'idle') {
+  const status = document.getElementById('status');
+  status.textContent = message;
+  status.className = type;
+}
+
+function updateSyncStatus(message) {
+  document.getElementById('syncStatus').textContent = message;
+}
+
+// Data export/import
+function downloadAllData() {
+  const dataStr = JSON.stringify(storage.data, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `homeschool-data-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function uploadData() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (confirm('This will replace all current data. Continue?')) {
+        storage.data = data;
+        saveToStorage();
+        loadFromStorage();
+        loadTodayLog();
+        alert('✓ Data imported successfully!');
+      }
+    } catch (err) {
+      alert('Error reading file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Storage selection
+function setStorage(type) {
+  document.querySelectorAll('.storage-btn').forEach(btn => btn.classList.remove('active'));
+
+  if (type === 'local') {
+    document.getElementById('storageLocal').classList.add('active');
+    updateSyncStatus('Using local storage');
+  } else if (type === 'gdrive') {
+    document.getElementById('storageGDrive').classList.add('active');
+    alert('Google Drive integration coming soon!');
+    setStorage('local');
+  } else if (type === 'dropbox') {
+    document.getElementById('storageDropbox').classList.add('active');
+    alert('Dropbox integration coming soon!');
+    setStorage('local');
+  }
+}
+</script>
+
+</body>
+</html>
