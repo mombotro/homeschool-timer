@@ -95,11 +95,22 @@ textarea { width: 100%; box-sizing: border-box; font-family: 'Courier New', mono
 
 h2 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
 h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
+
+/* Footer */
+.footer { margin-top: 60px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666; }
+.footer a { color: #2196F3; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* Help link */
+.help-link { display: inline-block; background: #2196F3; color: white; padding: 6px 12px;
+             border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: bold;
+             margin-left: 10px; }
+.help-link:hover { background: #1976D2; text-decoration: none; }
 </style>
 </head>
 <body>
 
-<h1>📚 Homeschool Time Tracker</h1>
+<h1>📚 Homeschool Time Tracker <a href="docs/" class="help-link">📖 Help</a></h1>
 
 <div id="storageModeIndicator" class="storage-mode">Detecting platform...</div>
 
@@ -1328,6 +1339,11 @@ document.addEventListener('click', (e) => {
   }
 });
 </script>
+
+<div class="footer">
+<p><strong>A tool from the <a href="https://azirona.com">Azirona Drift</a></strong></p>
+<p style="font-size: 14px; margin-top: 10px;">Made with ❤️ for homeschool families | Open Source | Free Forever</p>
+</div>
 
 </body>
 </html>

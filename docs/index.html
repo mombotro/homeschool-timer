@@ -5,7 +5,7 @@
 <title>Homeschool Time Tracker - Documentation</title>
 <style>
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-       max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
+       max-width: 800px; margin: 40px auto; padding: 0 20px 80px 20px; line-height: 1.6; color: #333; }
 h1 { color: #4CAF50; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
 h2 { color: #2196F3; margin-top: 30px; }
 h3 { color: #666; }
@@ -17,47 +17,68 @@ a:hover { text-decoration: underline; }
 .button { display: inline-block; background: #4CAF50; color: white; padding: 12px 24px;
           border-radius: 5px; margin: 10px 10px 10px 0; font-weight: bold; }
 .button:hover { background: #45a049; text-decoration: none; }
+.button-secondary { background: #333; }
 ul { margin: 10px 0; }
 li { margin: 5px 0; }
+.feature-box { background: #f9f9f9; border-left: 4px solid #4CAF50; padding: 15px; margin: 20px 0; border-radius: 4px; }
+.platform-badge { display: inline-block; background: #4CAF50; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-left: 8px; }
+.platform-badge.mobile { background: #FF9800; }
+.footer { margin-top: 60px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666; }
 </style>
 </head>
 <body>
 
 <h1>📚 Homeschool Time Tracker</h1>
 
-<p>A simple, local-first time tracking app for homeschool families. Track time spent on each student and subject using plain markdown files and hashtags.</p>
+<p>A simple, local-first time tracking app for homeschool families. Track time spent on each student and subject using plain markdown files and hashtags. <strong>Works on desktop and mobile!</strong></p>
 
 <a href="../index.html" class="button">🚀 Launch Timer App</a>
-<a href="https://github.com/mombotro/homeschool-timer" class="button" style="background: #333;">💾 View on GitHub</a>
+<a href="https://github.com/mombotro/homeschool-timer" class="button button-secondary">💾 View on GitHub</a>
 
-<h2>Features</h2>
+<h2>✨ Features</h2>
 
 <ul>
 <li>⏱️ <strong>Inline Timer</strong>: Start/pause/stop timer with automatic time recording</li>
-<li>🏷️ <strong>Smart Hashtags</strong>: Autocomplete for students (#alice, #bob) and subjects (#math, #core/reading)</li>
+<li>🏷️ <strong>Smart Hashtags</strong>: Autocomplete for students and subjects with nested tags (#core/math)</li>
+<li>📱 <strong>Works Everywhere</strong>: Desktop (folder storage) and mobile (browser storage)</li>
+<li>📂 <strong>File Organization</strong>: Create multiple student/subject files for better organization</li>
+<li>📊 <strong>CSV Export</strong>: Complete time reports with totals by student, subject, and category</li>
 <li>📝 <strong>Markdown-Based</strong>: All data stored as plain <code>.md</code> files (works with Obsidian!)</li>
-<li>⚙️ <strong>Easy Setup</strong>: Edit students and subjects in the built-in Settings tab</li>
-<li>📊 <strong>CSV Export</strong>: Export all logged time to CSV with the included Python script</li>
+<li>🔄 <strong>Data Portability</strong>: Import/export JSON to move data between devices</li>
 <li>🔒 <strong>100% Local</strong>: No server, no account, no internet required</li>
 </ul>
 
-<h2>Quick Start</h2>
+<h2>🚀 Quick Start</h2>
 
+<div class="feature-box">
+<h3>Desktop (Chrome/Edge)</h3>
 <ol>
-<li><strong>Launch the app</strong> by clicking the button above</li>
-<li><strong>Click "Select Project Folder"</strong> and choose a folder on your computer</li>
-<li><strong>Start tracking!</strong> Type <code>#</code> to see autocomplete suggestions</li>
+<li><strong>Launch the app</strong> - Click the button above</li>
+<li><strong>Create New Folder</strong> - Click "Create New Folder" to set up the folder structure automatically</li>
+<li><strong>Or Select Existing Folder</strong> - Click "Select Folder" to use an existing project</li>
+<li><strong>Start tracking!</strong> - Type <code>#</code> to see autocomplete suggestions</li>
 </ol>
+</div>
 
-<h2>Usage</h2>
+<div class="feature-box">
+<h3>Mobile (iOS/Android)</h3>
+<ol>
+<li><strong>Launch the app</strong> - Opens in mobile mode automatically</li>
+<li><strong>Start tracking!</strong> - All data saved in browser storage</li>
+<li><strong>Export/Import</strong> - Use JSON export to backup or transfer to desktop</li>
+</ol>
+</div>
+
+<h2>📋 How to Use</h2>
 
 <h3>Inline Timer Workflow</h3>
 
 <ol>
-<li>Click "New Timer Entry" or type: <code>- [Timer] #student #subject</code></li>
+<li>Click <strong>"New Timer Entry"</strong> or type: <code>- [Timer] #student #subject</code></li>
 <li>Add notes on the next line (optional)</li>
-<li>Click "Start Timer"</li>
-<li>Click "Stop Timer" when done - it replaces <code>[Timer]</code> with actual times</li>
+<li>Click <strong>"Start Timer"</strong></li>
+<li>Click <strong>"Pause"</strong> if you need to pause (click "Start" to resume)</li>
+<li>Click <strong>"Stop Timer"</strong> when done - replaces <code>[Timer]</code> with actual times</li>
 </ol>
 
 <p><strong>Example:</strong></p>
@@ -74,75 +95,207 @@ li { margin: 5px 0; }
 <li>Type <code>#c</code> → see all tags starting with "c"</li>
 <li>Type <code>#core/</code> → see nested tags like #core/math, #core/reading</li>
 <li>Use ↑/↓ arrows to navigate, Enter to select</li>
+<li>Supports multi-level nesting: <code>#core/math/algebra</code></li>
 </ul>
 
-<h3>Customize Students & Subjects</h3>
+<h3>Organize with Multiple Files <span class="platform-badge">Desktop</span></h3>
 
+<p>In the <strong>Settings</strong> tab:</p>
+
+<ul>
+<li><strong>Students dropdown</strong> - Switch between different student files
+  <ul>
+    <li>Example: <code>students-team1.md</code>, <code>students-team2.md</code></li>
+  </ul>
+</li>
+<li><strong>Subjects dropdown</strong> - Switch between different subject files
+  <ul>
+    <li>Example: <code>subjects-math.md</code>, <code>subjects-science.md</code></li>
+  </ul>
+</li>
+<li><strong>New File button</strong> - Create additional organization files</li>
+<li><strong>Delete File button</strong> - Remove files you don't need</li>
+</ul>
+
+<p><strong>All hashtags from all files merge together</strong> in the autocomplete!</p>
+
+<h3>Export Time Reports</h3>
+
+<p>In the <strong>Settings</strong> tab, click <strong>"Export CSV Report"</strong>:</p>
+
+<p><strong>The CSV includes:</strong></p>
 <ol>
-<li>Go to <strong>Settings</strong> tab</li>
-<li>Edit students and subjects</li>
-<li>Format: <code>#tagname - Description</code></li>
-<li>Click Save to update autocomplete</li>
+<li><strong>Detailed Log</strong> - All entries with date, student, subject, start, end, duration, notes</li>
+<li><strong>Totals by Student</strong> - Total hours per student (sorted)</li>
+<li><strong>Totals by Subject</strong> - Total hours per subject (sorted)</li>
+<li><strong>Totals by Top-Level Subject</strong> - Aggregates nested subjects
+  <ul>
+    <li><code>#core</code> = sum of <code>#core/math</code> + <code>#core/reading</code> + <code>#core/writing</code></li>
+    <li>Perfect for meeting state requirements!</li>
+  </ul>
+</li>
 </ol>
 
-<h3>Export to CSV</h3>
+<h3>Transfer Data Between Devices</h3>
 
-<p>Download the <code>export-times.py</code> script from GitHub and run:</p>
+<p><strong>Desktop → Mobile:</strong></p>
+<ol>
+<li>On desktop: Click <strong>"Export JSON"</strong></li>
+<li>Send file to mobile (email, cloud, etc.)</li>
+<li>On mobile: Click <strong>"Import JSON"</strong> and select file</li>
+</ol>
 
-<pre><code>python export-times.py</code></pre>
+<p><strong>Mobile → Desktop:</strong></p>
+<ol>
+<li>On mobile: Click <strong>"Export JSON"</strong></li>
+<li>Send file to desktop</li>
+<li>On desktop: Click <strong>"Import JSON"</strong> and select file</li>
+</ol>
 
-<p>Creates <code>homeschool-time-report.csv</code> with all logged time.</p>
-
-<h2>File Structure</h2>
+<h2>📁 File Structure (Desktop)</h2>
 
 <pre><code>homeschool-timer/
-├── index.html           # Main app
-├── export-times.py      # CSV export script
 ├── Students/
-│   └── students.md      # Student hashtag definitions
+│   ├── students.md          # Main student list
+│   ├── students-team1.md    # Optional: organized by team
+│   └── students-team2.md
 ├── Subjects/
-│   └── subjects.md      # Subject hashtag definitions
+│   ├── subjects.md          # Main subject list
+│   ├── subjects-core.md     # Optional: core subjects
+│   └── subjects-electives.md
 ├── Logbook/
-│   ├── 2025-11-19.md   # Daily log files
+│   ├── 2025-11-19.md       # Daily log files
 │   └── 2025-11-20.md
 └── Templates/
-    └── Daily Log.md     # Template for new logs</code></pre>
+    └── Daily Log.md         # Template for new logs</code></pre>
 
-<h2>Why This Approach?</h2>
+<h2>🎯 Use Cases</h2>
 
+<h3>State Reporting</h3>
 <ul>
-<li><strong>Future-proof</strong>: Plain text files work everywhere</li>
-<li><strong>Flexible</strong>: Use with any text editor or Obsidian</li>
-<li><strong>Simple</strong>: No complicated setup or learning curve</li>
-<li><strong>Portable</strong>: Works offline, no vendor lock-in</li>
-<li><strong>Privacy</strong>: All data stays on your computer</li>
+<li>Export CSV with totals by subject category</li>
+<li>Shows hours per core subject, electives, etc.</li>
+<li>Perfect for annual reports and compliance</li>
 </ul>
 
-<h2>Browser Compatibility</h2>
-
-<p>Requires a browser with File System Access API support:</p>
+<h3>Multiple Students</h3>
 <ul>
-<li>✅ Chrome/Edge (recommended)</li>
-<li>❌ Firefox (not supported yet)</li>
-<li>❌ Safari (not supported yet)</li>
+<li>Track each student separately with hashtags</li>
+<li>See individual totals in CSV export</li>
+<li>Create separate student files for better organization</li>
 </ul>
 
-<h2>Download for Offline Use</h2>
+<h3>Curriculum Planning</h3>
+<ul>
+<li>See which subjects need more time</li>
+<li>Balance time across students</li>
+<li>Track progress over weeks/months</li>
+</ul>
 
-<p>You can download the repository and run it entirely offline:</p>
+<h3>Co-op or Multi-Family</h3>
+<ul>
+<li>Create student files per family</li>
+<li>Track shared activities with multiple student tags</li>
+<li>Each family can export their own data</li>
+</ul>
 
-<ol>
-<li>Visit the <a href="https://github.com/mombotro/homeschool-timer">GitHub repository</a></li>
-<li>Click "Code" → "Download ZIP"</li>
-<li>Extract and open <code>index.html</code> in Chrome/Edge</li>
-</ol>
+<h2>💡 Tips & Tricks</h2>
 
-<hr style="margin: 40px 0;">
+<h3>Hashtag Organization</h3>
+<pre><code># Use prefixes for categories
+#core/math
+#core/reading
+#core/science
 
-<p style="text-align: center; color: #999;">
-Made with ❤️ for homeschool families |
-<a href="https://github.com/mombotro/homeschool-timer">Open Source</a>
-</p>
+#elective/art
+#elective/music
+#elective/sports
+
+# Student nicknames work great
+#alice
+#bob
+#clara
+
+# Joint activities - tag multiple students
+- 09:00 – 10:00 → #alice #bob #core/readaloud
+  Read "Charlotte's Web" together</code></pre>
+
+<h3>Keyboard Shortcuts</h3>
+<ul>
+<li><code>Ctrl+S</code> or <code>Cmd+S</code> - Save current log</li>
+<li><code>Ctrl+T</code> or <code>Cmd+T</code> - Insert new timer entry</li>
+<li>Type <code>#</code> - Show autocomplete</li>
+<li>↑/↓ arrows - Navigate autocomplete</li>
+<li>Enter - Select from autocomplete</li>
+<li>Escape - Close autocomplete</li>
+</ul>
+
+<h3>Backup Strategy</h3>
+<ul>
+<li><strong>Desktop:</strong> Folder is already backed up with your regular backups</li>
+<li><strong>Mobile:</strong> Export JSON weekly and save to cloud storage</li>
+<li><strong>Both:</strong> Export JSON before major changes</li>
+</ul>
+
+<h2>🌐 Browser Compatibility</h2>
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+<tr style="background: #f0f0f0;">
+  <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Platform</th>
+  <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Browser</th>
+  <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Status</th>
+</tr>
+<tr>
+  <td style="padding: 10px; border: 1px solid #ddd;">Desktop</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">Chrome / Edge</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">✅ Full support (folder storage)</td>
+</tr>
+<tr>
+  <td style="padding: 10px; border: 1px solid #ddd;">Desktop</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">Firefox / Safari</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">⚠️ Browser storage only</td>
+</tr>
+<tr>
+  <td style="padding: 10px; border: 1px solid #ddd;">iOS</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">Safari / Chrome</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">✅ Browser storage</td>
+</tr>
+<tr>
+  <td style="padding: 10px; border: 1px solid #ddd;">Android</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">Chrome</td>
+  <td style="padding: 10px; border: 1px solid #ddd;">✅ Browser storage</td>
+</tr>
+</table>
+
+<h2>❓ FAQ</h2>
+
+<h3>Can I use this with Obsidian?</h3>
+<p>Yes! On desktop, select your Obsidian vault as the project folder. All log files are plain markdown and will appear in Obsidian. You can edit them in either the timer app or Obsidian.</p>
+
+<h3>What if I lose my phone?</h3>
+<p>If you export JSON regularly, you can import it on a new device. Browser storage is persistent but backing up with JSON export is recommended.</p>
+
+<h3>Can multiple people use the same folder?</h3>
+<p>Yes, but not simultaneously. If sharing a folder (via Dropbox, etc.), coordinate who's using it to avoid conflicts. Better approach: each person exports JSON and one person imports/consolidates.</p>
+
+<h3>How do I delete a log entry?</h3>
+<p>Just edit the log in the editor - delete the line you don't want and click Save.</p>
+
+<h3>Can I edit hashtags after exporting CSV?</h3>
+<p>Yes! Open the CSV in Excel/Google Sheets and edit as needed. The source logs remain unchanged.</p>
+
+<h2>🔗 Links</h2>
+
+<ul>
+<li><a href="../index.html">Launch Timer App</a></li>
+<li><a href="https://github.com/mombotro/homeschool-timer">GitHub Repository</a></li>
+<li><a href="https://github.com/mombotro/homeschool-timer/issues">Report Issues</a></li>
+</ul>
+
+<div class="footer">
+<p><strong>A tool from the <a href="https://azirona.com">Azirona Drift</a></strong></p>
+<p style="font-size: 14px; margin-top: 10px;">Made with ❤️ for homeschool families | Open Source | Free Forever</p>
+</div>
 
 </body>
 </html>
