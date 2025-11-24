@@ -61,12 +61,19 @@ textarea:focus { outline: none; border-color: #a78bfa;
 
 /* Status */
 #status { background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
-          padding: 14px; border-radius: 12px; margin-bottom: 15px;
+          padding: 14px 40px 14px 14px; border-radius: 12px; margin-bottom: 15px;
           font-weight: 600; min-height: 20px; border: 2px solid #93c5fd;
-          color: #1e40af; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15); }
+          color: #1e40af; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+          position: relative; display: block; }
 #status.running { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
                   border-color: #6ee7b7; color: #065f46;
                   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15); }
+#status.hidden { display: none; }
+.status-close { position: absolute; top: 12px; right: 12px; background: transparent;
+                border: none; color: #1e40af; cursor: pointer; font-size: 18px;
+                font-weight: bold; width: 20px; height: 20px; line-height: 1;
+                padding: 0; transition: all 0.2s ease; }
+.status-close:hover { transform: scale(1.2); color: #1e3a8a; }
 
 /* File list */
 #fileList { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 300px; overflow-y: auto;
@@ -108,8 +115,16 @@ textarea:focus { outline: none; border-color: #a78bfa;
 .help { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
         padding: 14px; border-radius: 12px; margin-bottom: 15px;
         font-size: 13px; line-height: 1.5; border-left: 4px solid #f59e0b;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2); }
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2); position: relative; }
 .help strong { display: block; margin-bottom: 5px; color: #92400e; font-weight: 700; }
+.help-toggle { position: absolute; top: 10px; right: 10px; background: #f59e0b;
+               color: white; border: none; width: 24px; height: 24px; border-radius: 6px;
+               cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1;
+               box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); transition: all 0.2s ease; }
+.help-toggle:hover { background: #d97706; transform: scale(1.1); }
+.help-content { overflow: hidden; transition: max-height 0.3s ease; }
+.help.collapsed .help-content { max-height: 0 !important; }
+.help.collapsed { padding: 14px 40px 14px 14px; }
 
 /* Autocomplete */
 #autocomplete { position: fixed; background: white; border: 3px solid #a78bfa;
@@ -237,14 +252,20 @@ h3 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
 
     <!-- Logs Tab -->
     <div id="logsTab" class="tab-content active">
-      <div id="status">Type or insert a timer entry, then click Start Timer</div>
+      <div id="status">
+        👈 Ready to start tracking time!
+        <button class="status-close" onclick="dismissStatus()">×</button>
+      </div>
 
-      <div class="help">
-        <strong>How to use:</strong>
-        1. Type: <code>- [Timer] #student #subject</code><br>
-        2. Click "Start Timer"<br>
-        3. Click "Stop Timer" when done<br>
-        <strong>Autocomplete:</strong> Type <code>#</code> to see all tags
+      <div class="help" id="helpBox">
+        <button class="help-toggle" onclick="toggleHelp()">−</button>
+        <div class="help-content">
+          <strong>How to use:</strong>
+          1. Type: <code>- [Timer] #student #subject</code><br>
+          2. Click "Start Timer"<br>
+          3. Click "Stop Timer" when done<br>
+          <strong>Autocomplete:</strong> Type <code>#</code> to see all tags
+        </div>
       </div>
 
       <h3>📝 <span id="currentFile">No file loaded</span></h3>
@@ -326,7 +347,51 @@ window.addEventListener('load', async () => {
   await detectPlatform();
   setupAutocomplete();
   updateStatus('👈 Ready to start tracking time!', 'idle');
+
+  // Restore help box state
+  const helpCollapsed = localStorage.getItem('helpCollapsed') === 'true';
+  if (helpCollapsed) {
+    document.getElementById('helpBox').classList.add('collapsed');
+    document.querySelector('.help-toggle').textContent = '+';
+  }
+
+  // Set initial help content height for animation
+  const helpContent = document.querySelector('.help-content');
+  if (helpContent) {
+    helpContent.style.maxHeight = helpContent.scrollHeight + 'px';
+  }
+
+  // Check if status was dismissed
+  const statusDismissed = sessionStorage.getItem('statusDismissed') === 'true';
+  if (statusDismissed) {
+    document.getElementById('status').classList.add('hidden');
+  }
 });
+
+// Toggle help box
+function toggleHelp() {
+  const helpBox = document.getElementById('helpBox');
+  const toggleBtn = document.querySelector('.help-toggle');
+  const helpContent = document.querySelector('.help-content');
+
+  if (helpBox.classList.contains('collapsed')) {
+    helpBox.classList.remove('collapsed');
+    toggleBtn.textContent = '−';
+    helpContent.style.maxHeight = helpContent.scrollHeight + 'px';
+    localStorage.setItem('helpCollapsed', 'false');
+  } else {
+    helpBox.classList.add('collapsed');
+    toggleBtn.textContent = '+';
+    helpContent.style.maxHeight = '0';
+    localStorage.setItem('helpCollapsed', 'true');
+  }
+}
+
+// Dismiss status message
+function dismissStatus() {
+  document.getElementById('status').classList.add('hidden');
+  sessionStorage.setItem('statusDismissed', 'true');
+}
 
 // Platform detection
 async function detectPlatform() {
@@ -1428,8 +1493,17 @@ function switchTab(tabName) {
 
 function updateStatus(message, type = 'idle') {
   const status = document.getElementById('status');
-  status.textContent = message;
   status.className = type;
+
+  // Show status if hidden
+  status.classList.remove('hidden');
+
+  // Add close button only for idle "ready" message
+  if (type === 'idle' && message.includes('Ready to start tracking time')) {
+    status.innerHTML = message + ' <button class="status-close" onclick="dismissStatus()">×</button>';
+  } else {
+    status.textContent = message;
+  }
 }
 
 // Click outside autocomplete to close
