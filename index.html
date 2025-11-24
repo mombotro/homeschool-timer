@@ -1264,10 +1264,30 @@ function showAutocomplete(prefix) {
     dropdown.appendChild(div);
   });
 
-  // Position dropdown
+  // Position dropdown - mobile-friendly
   const editorRect = editor.getBoundingClientRect();
-  dropdown.style.left = Math.max(10, editorRect.left) + 'px';
-  dropdown.style.top = (editorRect.top + 60) + 'px';
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+
+  // On mobile, position at bottom of screen above keyboard
+  // On desktop, position near the editor
+  if (viewportWidth < 768) {
+    // Mobile: fixed at bottom, centered
+    dropdown.style.left = '5%';
+    dropdown.style.right = '5%';
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = '10px';
+    dropdown.style.width = '90%';
+    dropdown.style.maxWidth = '90vw';
+  } else {
+    // Desktop: position near editor
+    dropdown.style.left = Math.max(10, editorRect.left) + 'px';
+    dropdown.style.top = (editorRect.top + 60) + 'px';
+    dropdown.style.bottom = 'auto';
+    dropdown.style.right = 'auto';
+    dropdown.style.width = 'auto';
+  }
+
   dropdown.style.display = 'block';
 
   autocompleteSelectedIndex = 0;
