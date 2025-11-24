@@ -151,11 +151,53 @@ h3 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
              box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); transition: all 0.3s ease; }
 .help-link:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
                    text-decoration: none; }
+
+/* Mobile menu */
+.mobile-timer-bar { display: none; position: fixed; top: 0; left: 0; right: 0;
+                    background: linear-gradient(135deg, #ffffff 0%, #fef9ff 100%);
+                    border-bottom: 2px solid #e9d5ff; padding: 10px;
+                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.12); z-index: 900; }
+.mobile-timer-controls { display: flex; gap: 10px; align-items: center; }
+.mobile-timer-controls button { margin: 0; flex: 1; }
+.burger-btn { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+              color: white; border: none; padding: 12px 16px; border-radius: 10px;
+              cursor: pointer; font-size: 20px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+              transition: all 0.3s ease; }
+.burger-btn:hover { transform: scale(1.05); }
+
+@media (max-width: 767px) {
+  body { padding-top: 70px; }
+  .mobile-timer-bar { display: block; }
+  .sidebar { position: fixed; top: 70px; left: -100%; width: 80%; max-width: 300px;
+             height: calc(100vh - 70px); background: linear-gradient(135deg, #ffffff 0%, #fef9ff 100%);
+             transition: left 0.3s ease; z-index: 950; overflow-y: auto; padding: 15px;
+             box-shadow: 4px 0 12px rgba(139, 92, 246, 0.2); }
+  .sidebar.open { left: 0; }
+  .sidebar .panel:first-child { display: none; }
+  h1 { font-size: 18px; }
+  .help-link { font-size: 11px; padding: 6px 10px; }
+}
+
+.menu-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.5); z-index: 940; }
+.menu-overlay.open { display: block; }
 </style>
 </head>
 <body>
 
 <h1>📚 Homeschool Time Tracker <a href="docs/" class="help-link">📖 Help</a></h1>
+
+<!-- Mobile Timer Bar -->
+<div class="mobile-timer-bar">
+  <div class="mobile-timer-controls">
+    <button class="burger-btn" onclick="toggleMenu()">☰</button>
+    <button id="mobileStartBtn" onclick="startTimer()">▶️ Start</button>
+    <button id="mobileStopBtn" onclick="stopTimer()" class="stop hidden">⏹️ Stop</button>
+  </div>
+</div>
+
+<!-- Menu overlay for mobile -->
+<div class="menu-overlay" onclick="closeMenu()"></div>
 
 <div id="storageModeIndicator" class="storage-mode">Detecting platform...</div>
 
@@ -166,7 +208,6 @@ h3 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
     <div class="panel">
       <h2>⏱️ Timer</h2>
       <button id="startBtn" onclick="startTimer()">▶️ Start Timer</button>
-      <button id="pauseBtn" onclick="pauseTimer()" class="pause hidden">⏸️ Pause Timer</button>
       <button id="stopBtn" onclick="stopTimer()" class="stop hidden">⏹️ Stop Timer</button>
       <button onclick="insertTimerLine()" class="secondary">➕ New Timer Entry</button>
     </div>
@@ -269,7 +310,6 @@ let subjectFiles = {};
 // Timer state
 let timerStartTime = null;
 let timerLineIndex = null;
-let timerPausedTime = null;
 let timerState = 'idle';
 
 // Data
@@ -1147,15 +1187,6 @@ function startTimer() {
   const editor = document.getElementById('logEditor');
   const lines = editor.value.split('\n');
 
-  if (timerState === 'paused') {
-    timerState = 'running';
-    document.getElementById('startBtn').textContent = '▶️ Start Timer';
-    updateTimerButtons();
-    const content = lines[timerLineIndex].replace('- [Timer]', '').trim();
-    updateStatus(`⏱️ RUNNING (resumed)... ${content}`, 'running');
-    return;
-  }
-
   let timerLine = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
     if (lines[i].includes('[Timer]')) {
@@ -1176,14 +1207,6 @@ function startTimer() {
 
   const content = lines[timerLine].replace('- [Timer]', '').trim();
   updateStatus(`⏱️ RUNNING... Started at ${timerStartTime.toLocaleTimeString()} - ${content}`, 'running');
-}
-
-function pauseTimer() {
-  if (timerState !== 'running') return;
-  timerState = 'paused';
-  timerPausedTime = new Date();
-  updateTimerButtons();
-  updateStatus('⏸️ PAUSED - Click Start to resume or Stop to finish', 'idle');
 }
 
 function stopTimer() {
@@ -1218,23 +1241,36 @@ function stopTimer() {
 
 function updateTimerButtons() {
   const startBtn = document.getElementById('startBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
   const stopBtn = document.getElementById('stopBtn');
+  const mobileStartBtn = document.getElementById('mobileStartBtn');
+  const mobileStopBtn = document.getElementById('mobileStopBtn');
 
   if (timerState === 'idle') {
     startBtn.classList.remove('hidden');
-    pauseBtn.classList.add('hidden');
     stopBtn.classList.add('hidden');
+    if (mobileStartBtn) mobileStartBtn.classList.remove('hidden');
+    if (mobileStopBtn) mobileStopBtn.classList.add('hidden');
   } else if (timerState === 'running') {
     startBtn.classList.add('hidden');
-    pauseBtn.classList.remove('hidden');
     stopBtn.classList.remove('hidden');
-  } else if (timerState === 'paused') {
-    startBtn.classList.remove('hidden');
-    startBtn.textContent = '▶️ Resume Timer';
-    pauseBtn.classList.add('hidden');
-    stopBtn.classList.remove('hidden');
+    if (mobileStartBtn) mobileStartBtn.classList.add('hidden');
+    if (mobileStopBtn) mobileStopBtn.classList.remove('hidden');
   }
+}
+
+// Mobile menu toggle
+function toggleMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.menu-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.menu-overlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
 }
 
 // Autocomplete
