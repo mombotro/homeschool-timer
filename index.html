@@ -1266,17 +1266,16 @@ function showAutocomplete(prefix) {
 
   // Position dropdown - mobile-friendly
   const editorRect = editor.getBoundingClientRect();
-  const viewportHeight = window.innerHeight;
   const viewportWidth = window.innerWidth;
 
-  // On mobile, position at bottom of screen above keyboard
+  // On mobile, position above the editor (below status area)
   // On desktop, position near the editor
   if (viewportWidth < 768) {
-    // Mobile: fixed at bottom, centered
+    // Mobile: position at top of editor area, full width
     dropdown.style.left = '5%';
     dropdown.style.right = '5%';
-    dropdown.style.top = 'auto';
-    dropdown.style.bottom = '10px';
+    dropdown.style.top = (editorRect.top - 10) + 'px';
+    dropdown.style.bottom = 'auto';
     dropdown.style.width = '90%';
     dropdown.style.maxWidth = '90vw';
   } else {
