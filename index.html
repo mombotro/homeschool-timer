@@ -6,9 +6,12 @@
 <title>Homeschool Time Tracker</title>
 <style>
 /* Responsive base styles */
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-       max-width: 1400px; margin: 0 auto; padding: 10px; background: #f5f5f5; }
-h1 { color: #333; margin: 10px 0; font-size: clamp(18px, 5vw, 24px); }
+body { font-family: 'Segoe UI', 'Avenir', 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+       max-width: 1400px; margin: 0 auto; padding: 10px;
+       background: linear-gradient(135deg, #ffeef8 0%, #e8f5ff 50%, #fff5e8 100%);
+       background-attachment: fixed; }
+h1 { color: #7c3aed; margin: 10px 0; font-size: clamp(20px, 5vw, 28px);
+     font-weight: 700; text-shadow: 2px 2px 4px rgba(124, 58, 237, 0.1); }
 
 /* Container - responsive grid */
 .container { display: grid; grid-template-columns: 1fr; gap: 15px; }
@@ -18,46 +21,75 @@ h1 { color: #333; margin: 10px 0; font-size: clamp(18px, 5vw, 24px); }
 }
 
 .sidebar { display: flex; flex-direction: column; gap: 15px; }
-.panel { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px;
-         box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.main-panel { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+.panel { background: linear-gradient(135deg, #ffffff 0%, #fef9ff 100%);
+         border: 2px solid #e9d5ff; padding: 18px; border-radius: 16px;
+         box-shadow: 0 4px 12px rgba(139, 92, 246, 0.12); }
+.main-panel { background: linear-gradient(135deg, #ffffff 0%, #fef9ff 100%);
+              border: 2px solid #e9d5ff; padding: 18px; border-radius: 16px;
+              box-shadow: 0 4px 12px rgba(139, 92, 246, 0.12); }
 
 /* Buttons - touch-friendly */
-button { background: #4CAF50; color: white; border: none; padding: 12px 15px;
-         cursor: pointer; border-radius: 6px; font-size: 14px; width: 100%; margin-bottom: 5px;
-         font-weight: 500; touch-action: manipulation; }
-button:hover, button:active { opacity: 0.9; }
-button.secondary { background: #008CBA; }
-button.stop { background: #f44336; }
-button.pause { background: #FF9800; }
+button { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+         color: white; border: none; padding: 14px 18px;
+         cursor: pointer; border-radius: 12px; font-size: 15px; width: 100%; margin-bottom: 8px;
+         font-weight: 600; touch-action: manipulation;
+         box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+         transition: all 0.3s ease; }
+button:hover, button:active { transform: translateY(-2px);
+                               box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); }
+button.secondary { background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+                   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
+button.secondary:hover { box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4); }
+button.stop { background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+              box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); }
+button.stop:hover { box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4); }
+button.pause { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+               box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+button.pause:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4); }
 button.hidden { display: none; }
 
 /* Text areas */
 textarea { width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace;
-           padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;
-           line-height: 1.6; min-height: 300px; resize: vertical; }
+           padding: 14px; border: 2px solid #e9d5ff; border-radius: 12px; font-size: 14px;
+           line-height: 1.6; min-height: 300px; resize: vertical;
+           background: #fefefe; transition: border-color 0.3s ease; }
+textarea:focus { outline: none; border-color: #a78bfa;
+                 box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
 @media (min-width: 768px) {
   textarea { min-height: 400px; }
 }
 
 /* Status */
-#status { background: #e7f3ff; padding: 12px; border-radius: 6px; margin-bottom: 15px;
-          font-weight: 500; min-height: 20px; border: 2px solid #0066cc; color: #004085; }
-#status.running { background: #d4edda; border-color: #28a745; color: #155724; }
+#status { background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          padding: 14px; border-radius: 12px; margin-bottom: 15px;
+          font-weight: 600; min-height: 20px; border: 2px solid #93c5fd;
+          color: #1e40af; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15); }
+#status.running { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                  border-color: #6ee7b7; color: #065f46;
+                  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15); }
 
 /* File list */
 #fileList { list-style: none; padding: 0; margin: 10px 0 0 0; max-height: 300px; overflow-y: auto;
-            background: white; border: 1px solid #ddd; border-radius: 6px; }
-#fileList li { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; }
-#fileList li:hover, #fileList li:active { background: #e3f2fd; }
-#fileList li.active { background: #4CAF50; color: white; font-weight: bold; }
+            background: #fefefe; border: 2px solid #e9d5ff; border-radius: 12px; }
+#fileList li { padding: 12px; border-bottom: 1px solid #f3e8ff; cursor: pointer; font-size: 13px;
+               transition: all 0.2s ease; }
+#fileList li:hover, #fileList li:active { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+                                          transform: translateX(4px); }
+#fileList li.active { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+                      color: white; font-weight: bold;
+                      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3); }
 
 /* Tabs */
-.tabs { display: flex; gap: 2px; margin-bottom: 15px; border-bottom: 2px solid #ddd; overflow-x: auto; }
-.tab { padding: 12px 15px; cursor: pointer; border: none; background: transparent;
-       color: #666; font-size: 14px; border-bottom: 3px solid transparent; white-space: nowrap; }
-.tab:hover { background: #f0f0f0; color: #333; }
-.tab.active { color: #4CAF50; border-bottom-color: #4CAF50; font-weight: 600; }
+.tabs { display: flex; gap: 4px; margin-bottom: 15px; border-bottom: 3px solid #e9d5ff;
+        overflow-x: auto; padding-bottom: 4px; }
+.tab { padding: 12px 18px; cursor: pointer; border: none;
+       background: transparent; color: #9333ea; font-size: 15px;
+       border-bottom: 3px solid transparent; white-space: nowrap;
+       font-weight: 500; transition: all 0.3s ease; border-radius: 8px 8px 0 0; }
+.tab:hover { background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+             color: #7c3aed; }
+.tab.active { color: #7c3aed; border-bottom-color: #8b5cf6; font-weight: 700;
+              background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
@@ -66,46 +98,59 @@ textarea { width: 100%; box-sizing: border-box; font-family: 'Courier New', mono
 @media (min-width: 768px) {
   .settings-editors { grid-template-columns: 1fr 1fr; gap: 20px; }
 }
-.editor-section { border: 1px solid #ddd; padding: 15px; border-radius: 6px; background: #fafafa; }
-.editor-section h3 { margin-top: 0; color: #4CAF50; font-size: 16px; }
+.editor-section { border: 2px solid #e9d5ff; padding: 18px; border-radius: 16px;
+                  background: linear-gradient(135deg, #fefefe 0%, #faf5ff 100%);
+                  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1); }
+.editor-section h3 { margin-top: 0; color: #7c3aed; font-size: 17px; font-weight: 700; }
 .editor-section textarea { min-height: 250px; font-size: 13px; background: white; }
 
 /* Help */
-.help { background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 15px;
-        font-size: 13px; line-height: 1.5; border-left: 4px solid #2196F3; }
-.help strong { display: block; margin-bottom: 5px; color: #1976D2; }
+.help { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 14px; border-radius: 12px; margin-bottom: 15px;
+        font-size: 13px; line-height: 1.5; border-left: 4px solid #f59e0b;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2); }
+.help strong { display: block; margin-bottom: 5px; color: #92400e; font-weight: 700; }
 
 /* Autocomplete */
-#autocomplete { position: fixed; background: white; border: 2px solid #4CAF50;
-                border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 1000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; min-width: 200px;
+#autocomplete { position: fixed; background: white; border: 3px solid #a78bfa;
+                border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 1000;
+                box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3); display: none; min-width: 200px;
                 max-width: 90vw; }
-#autocomplete div { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #eee; }
-#autocomplete div:hover, #autocomplete div:active { background: #e3f2fd; }
-#autocomplete div.selected { background: #4CAF50; color: white; }
-#autocomplete .tag { font-weight: bold; color: #2196F3; }
-#autocomplete .desc { font-size: 12px; color: #666; margin-left: 8px; }
+#autocomplete div { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f3e8ff;
+                    transition: all 0.2s ease; }
+#autocomplete div:hover, #autocomplete div:active {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); }
+#autocomplete div.selected { background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+                              color: white; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3); }
+#autocomplete .tag { font-weight: bold; color: #7c3aed; }
+#autocomplete .desc { font-size: 12px; color: #6b7280; margin-left: 8px; }
 #autocomplete div.selected .tag, #autocomplete div.selected .desc { color: white; }
 
 /* Storage mode indicator */
-.storage-mode { padding: 8px 12px; background: #f0f0f0; border-radius: 6px; font-size: 12px;
-                text-align: center; margin-bottom: 10px; color: #666; }
-.storage-mode.desktop { background: #d4edda; color: #155724; }
-.storage-mode.mobile { background: #fff3cd; color: #856404; }
+.storage-mode { padding: 10px 14px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+                border-radius: 12px; font-size: 13px; text-align: center; margin-bottom: 12px;
+                color: #4b5563; font-weight: 600; border: 2px solid #d1d5db; }
+.storage-mode.desktop { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                        color: #065f46; border-color: #6ee7b7; }
+.storage-mode.mobile { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                       color: #92400e; border-color: #fbbf24; }
 
-h2 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
-h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; }
+h2 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
+h3 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
 
 /* Footer */
-.footer { margin-top: 60px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666; }
-.footer a { color: #2196F3; text-decoration: none; }
-.footer a:hover { text-decoration: underline; }
+.footer { margin-top: 60px; padding-top: 20px; border-top: 3px solid #e9d5ff;
+          text-align: center; color: #6b7280; }
+.footer a { color: #8b5cf6; text-decoration: none; font-weight: 600; }
+.footer a:hover { text-decoration: underline; color: #7c3aed; }
 
 /* Help link */
-.help-link { display: inline-block; background: #2196F3; color: white; padding: 6px 12px;
-             border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: bold;
-             margin-left: 10px; }
-.help-link:hover { background: #1976D2; text-decoration: none; }
+.help-link { display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+             color: white; padding: 8px 16px; border-radius: 10px; text-decoration: none;
+             font-size: 13px; font-weight: bold; margin-left: 10px;
+             box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); transition: all 0.3s ease; }
+.help-link:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+                   text-decoration: none; }
 </style>
 </head>
 <body>
