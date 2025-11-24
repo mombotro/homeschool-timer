@@ -116,16 +116,17 @@ textarea:focus { outline: none; border-color: #a78bfa;
         padding: 16px 45px 16px 16px; border-radius: 12px; margin-bottom: 15px;
         font-size: 13px; line-height: 1.6; border: 2px solid #e9d5ff;
         box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1); position: relative; }
-.help strong { display: block; margin-bottom: 8px; color: #7c3aed; font-weight: 700; font-size: 14px; }
+.help-header { display: block; margin-bottom: 8px; color: #7c3aed; font-weight: 700; font-size: 14px; }
 .help-toggle { position: absolute; top: 14px; right: 14px; background: #8b5cf6;
                color: white; border: none; width: 26px; height: 26px; border-radius: 8px;
                cursor: pointer; font-weight: bold; font-size: 18px; line-height: 1;
                box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3); transition: all 0.2s ease;
                display: flex; align-items: center; justify-content: center; }
 .help-toggle:hover { background: #7c3aed; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4); }
-.help-content { overflow: hidden; transition: max-height 0.3s ease; }
-.help.collapsed .help-content { max-height: 0 !important; }
-.help.collapsed { padding: 16px 45px 16px 16px; min-height: 26px; }
+.help-details { overflow: hidden; transition: max-height 0.3s ease; }
+.help.collapsed .help-details { max-height: 0 !important; margin-top: 0; }
+.help.collapsed { padding: 16px 45px 16px 16px; }
+.help.collapsed .help-header { margin-bottom: 0; }
 
 /* Autocomplete */
 #autocomplete { position: fixed; background: white; border: 3px solid #a78bfa;
@@ -268,8 +269,8 @@ h3 { margin: 0 0 12px 0; font-size: 17px; color: #7c3aed; font-weight: 700; }
 
       <div class="help" id="helpBox">
         <button class="help-toggle" onclick="toggleHelp()">−</button>
-        <div class="help-content">
-          <strong>How to use:</strong>
+        <span class="help-header">How to use:</span>
+        <div class="help-details">
           1. Type: <code>- [Timer] #student #subject</code><br>
           2. Click "Start Timer"<br>
           3. Click "Stop Timer" when done<br>
@@ -364,10 +365,10 @@ window.addEventListener('load', async () => {
     document.querySelector('.help-toggle').textContent = '+';
   }
 
-  // Set initial help content height for animation
-  const helpContent = document.querySelector('.help-content');
-  if (helpContent) {
-    helpContent.style.maxHeight = helpContent.scrollHeight + 'px';
+  // Set initial help details height for animation
+  const helpDetails = document.querySelector('.help-details');
+  if (helpDetails) {
+    helpDetails.style.maxHeight = helpDetails.scrollHeight + 'px';
   }
 
   // Check if status was dismissed
@@ -381,17 +382,17 @@ window.addEventListener('load', async () => {
 function toggleHelp() {
   const helpBox = document.getElementById('helpBox');
   const toggleBtn = document.querySelector('.help-toggle');
-  const helpContent = document.querySelector('.help-content');
+  const helpDetails = document.querySelector('.help-details');
 
   if (helpBox.classList.contains('collapsed')) {
     helpBox.classList.remove('collapsed');
     toggleBtn.textContent = '−';
-    helpContent.style.maxHeight = helpContent.scrollHeight + 'px';
+    helpDetails.style.maxHeight = helpDetails.scrollHeight + 'px';
     localStorage.setItem('helpCollapsed', 'false');
   } else {
     helpBox.classList.add('collapsed');
     toggleBtn.textContent = '+';
-    helpContent.style.maxHeight = '0';
+    helpDetails.style.maxHeight = '0';
     localStorage.setItem('helpCollapsed', 'true');
   }
 }
